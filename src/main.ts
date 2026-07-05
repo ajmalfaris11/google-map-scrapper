@@ -1,30 +1,43 @@
-import { env } from './config/env.validator';
+import { ConfigService } from './config/ConfigService';
 import { logger } from './core/logger/Logger';
-import { BrowserManager } from './core/browser/BrowserManager';
+import { BrowserFactory } from './core/browser/BrowserFactory';
+import { BrowserContextManager } from './core/browser/BrowserContextManager';
+import { GoogleMapsProvider } from './providers/google-maps/GoogleMapsProvider';
+import { ProgressTracker } from './core/progress/ProgressTracker';
+import { EventBus, EventTypes } from './core/events/EventBus';
 
 async function bootstrap() {
-  logger.info(`Starting Lead Collection Platform`);
-  logger.info(`Keyword: ${env.KEYWORD}`);
-  logger.info(`Headless mode: ${env.HEADLESS}`);
+  logger.info(`Starting Lead Collection Platform (LeadEngine)`);
+  logger.info(`Keyword: Resorts, Location: Kerala`);
+  logger.info(`Headless mode: ${ConfigService.get('HEADLESS')}`);
   
-  const browserManager = new BrowserManager();
+  const tracker = new ProgressTracker();
+  const browserManager = BrowserFactory.createBrowserManager();
   
   try {
-    await browserManager.initialize();
+    const browser = await browserManager.initialize({ headless: ConfigService.get('HEADLESS') === 'true' });
+    const contextManager = new BrowserContextManager(browser);
+    const context = await contextManager.createContext();
     
-    // Milestone 2 Test: Create context and page, take screenshot to ensure it works
-    const context = await browserManager.createContext();
-    const page = await browserManager.createPage(context);
+    // Test Milestone 4
+    const mapsProvider = new GoogleMapsProvider(context);
     
-    logger.info("Browser instantiated and page created successfully.");
+    // 1. Launch
+    await mapsProvider.launch();
     
-    // Keep it minimal for milestone 2
-    logger.info("Milestone 2 Completed Successfully.");
+    // 2. Search & Wait
+    await mapsProvider.search("Resorts", "Kerala");
+    
+    logger.info("Navigation test completed successfully. Search results rendered.");
+    
+    // Keep page open for 5 seconds to observe before shutting down if headless is false
+    await new Promise(r => setTimeout(r, 5000));
     
   } catch (error) {
-    logger.error({ err: error }, "Failed to execute");
+    logger.error({ err: error }, "Failed to execute navigation");
+    EventBus.publish(EventTypes.JobFailed, { error });
   } finally {
-    await browserManager.close();
+    await browserManager.closeBrowser();
     logger.info("Graceful shutdown complete.");
   }
 }
