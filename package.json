@@ -1,0 +1,31 @@
+{
+  "name": "google-maps-scraper",
+  "version": "1.0.0",
+  "description": "Google Maps Lead Collector",
+  "main": "src/main.ts",
+  "scripts": {
+    "scrape": "tsx src/main.ts",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "dotenv": "^16.4.5",
+    "fast-csv": "^5.0.1",
+    "pino": "^9.1.0",
+    "pino-pretty": "^11.1.0",
+    "pino-roll": "^4.0.0",
+    "playwright": "^1.44.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "prisma": "^5.14.0",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5"
+  }
+}
