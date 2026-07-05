@@ -5,6 +5,9 @@ export class ProgressTracker {
   private businessesFound = 0;
   private businessesProcessed = 0;
   private businessesFailed = 0;
+  private uniqueUrls = 0;
+  private duplicates = 0;
+  private currentScroll = 0;
   private startTime: number = Date.now();
   private status = 'Idle';
 
@@ -18,11 +21,24 @@ export class ProgressTracker {
     EventBus.subscribe(EventTypes.SearchStarted, () => this.updateStatus('Searching'));
     EventBus.subscribe(EventTypes.SearchCompleted, () => this.updateStatus('Waiting For Results'));
     
-    EventBus.subscribe(EventTypes.BusinessFound, () => {
-      this.updateStatus('Ready');
+    EventBus.subscribe(EventTypes.ScrollStarted, () => this.updateStatus('Scrolling Results'));
+    EventBus.subscribe(EventTypes.ScrollProgress, (payload: any) => {
+      this.currentScroll = payload.scrollCount;
+      this.logProgress();
+    });
+    EventBus.subscribe(EventTypes.UrlCollected, () => {
+      this.uniqueUrls++;
       this.businessesFound++;
       this.logProgress();
     });
+    EventBus.subscribe(EventTypes.DuplicateSkipped, () => {
+      this.duplicates++;
+    });
+    EventBus.subscribe(EventTypes.CollectionCompleted, () => {
+      this.updateStatus('Collection Complete');
+      this.logProgress();
+    });
+    
     EventBus.subscribe(EventTypes.BusinessExtracted, () => {
       this.businessesProcessed++;
       this.logProgress();
@@ -40,12 +56,13 @@ export class ProgressTracker {
 
   private logProgress() {
     const elapsed = (Date.now() - this.startTime) / 1000;
-    const speed = this.businessesProcessed / (elapsed / 60); 
+    const speed = this.uniqueUrls / (elapsed / 60); 
     logger.info({
       status: this.status,
-      found: this.businessesFound,
-      processed: this.businessesProcessed,
-      failed: this.businessesFailed,
+      loadedResults: this.businessesFound,
+      uniqueUrls: this.uniqueUrls,
+      duplicates: this.duplicates,
+      scrollCount: this.currentScroll,
       elapsedSec: elapsed.toFixed(2),
       speedPerMin: speed.toFixed(2)
     }, 'Progress Update');
