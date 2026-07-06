@@ -5,26 +5,25 @@ export class BusinessExtractor {
   constructor(private page: Page) {}
 
   async extractRawData(url: string): Promise<Record<string, string | null>> {
-    // Extract everything in one page.evaluate to minimize round-trips
-    const rawData = await this.page.evaluate((selectors) => {
-      const getText = (selector: string) => {
-        const el = document.querySelector(selector);
-        return el ? (el.textContent || '').trim() : null;
-      };
-      const getHref = (selector: string) => {
-        const el = document.querySelector(selector) as HTMLAnchorElement;
-        return el ? (el.href || '').trim() : null;
-      };
-      
+    const rawData = await this.page.evaluate(function(selectors: any) {
+      const nameEl = document.querySelector(selectors.name);
+      const addrEl = document.querySelector(selectors.address);
+      const webEl = document.querySelector(selectors.website) as HTMLAnchorElement;
+      const phoneEl = document.querySelector(selectors.phone);
+      const ratingEl = document.querySelector(selectors.rating);
+      const revEl = document.querySelector(selectors.reviews);
+      const catEl = document.querySelector(selectors.category);
+      const hoursEl = document.querySelector(selectors.hours);
+
       return {
-        name: getText(selectors.name),
-        address: getText(selectors.address),
-        website: getHref(selectors.website),
-        phone: getText(selectors.phone),
-        rating: getText(selectors.rating),
-        reviews: getText(selectors.reviews),
-        category: getText(selectors.category),
-        hours: getText(selectors.hours)
+        name: nameEl ? (nameEl.textContent || '').trim() : null,
+        address: addrEl ? (addrEl.textContent || '').trim() : null,
+        website: webEl ? (webEl.href || '').trim() : null,
+        phone: phoneEl ? (phoneEl.textContent || '').trim() : null,
+        rating: ratingEl ? (ratingEl.textContent || '').trim() : null,
+        reviews: revEl ? (revEl.textContent || '').trim() : null,
+        category: catEl ? (catEl.textContent || '').trim() : null,
+        hours: hoursEl ? (hoursEl.textContent || '').trim() : null
       };
     }, BusinessSelectors);
 
