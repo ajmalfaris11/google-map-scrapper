@@ -1,8 +1,9 @@
 export class BusinessNormalizer {
   public static normalizePhone(phone: string | null): string | null {
     if (!phone) return null;
-    // Basic cleanup: remove extra spaces, standardizing could be complex based on region
-    return phone.replace(/\s+/g, ' ').trim();
+    // Remove invisible unicode formatting characters, emojis, and icons used by Google Maps
+    const cleaned = phone.replace(/[^\x20-\x7E\p{L}\p{N}+-]/gu, '');
+    return cleaned.replace(/\s+/g, ' ').trim();
   }
 
   public static normalizeWebsite(website: string | null): string | null {
@@ -21,6 +22,7 @@ export class BusinessNormalizer {
 
   public static normalizeWhitespace(text: string | null): string | null {
     if (!text) return null;
-    return text.replace(/\s+/g, ' ').trim();
+    const cleaned = text.replace(/[^\x20-\x7E\p{L}\p{N}\p{P}]/gu, ' ');
+    return cleaned.replace(/\s+/g, ' ').trim();
   }
 }
