@@ -14,7 +14,6 @@ import { JobRepository } from './repositories/JobRepository';
 import { PersistenceService } from './services/PersistenceService';
 import { RecoveryService } from './services/RecoveryService';
 
-let extractedCount = 0;
 let metricsInterval: NodeJS.Timeout | null = null;
 
 async function bootstrap() {
@@ -27,16 +26,11 @@ async function bootstrap() {
   const recoveryService = new RecoveryService();
   const jobRepo = new JobRepository();
   
-  let jobId = "verification-job-id-no-db";
-  try {
-    jobId = await recoveryService.detectAndRecover(extractionQueue) || jobId;
-    if (jobId === "verification-job-id-no-db") {
-      const keyword = ConfigService.get('KEYWORD') as string || "Resorts";
-      jobId = await jobRepo.createJob(keyword, 'google-maps', 'Kerala');
-      logger.info(`Created new Job: ${jobId}`);
-    }
-  } catch (error) {
-    logger.error("PostgreSQL connection unavailable. Proceeding with in-memory pipeline verification.");
+  let jobId = await recoveryService.detectAndRecover(extractionQueue);
+  if (!jobId) {
+    const keyword = ConfigService.get('KEYWORD') as string || "Resorts";
+    jobId = await jobRepo.createJob(keyword, 'google-maps', 'Kerala');
+    logger.info(`Created new Job: ${jobId}`);
   }
 
   // 2. Persistence Flow Setup
@@ -52,32 +46,16 @@ async function bootstrap() {
     // Simulate getting queue snapshot (MemoryQueue would need a snapshot method in production)
     const queueSnapshot: ExtractionJob[] = []; // await extractionQueue.getAll();
     
-    // For Verification: Log the extracted business
-    logger.info(`[VERIFICATION] Extracted Business: ${business.name} | ${business.phone || 'No Phone'} | ${business.website || 'No Website'}`);
-    logger.info(JSON.stringify(business, null, 2));
-
-    try {
-      await persistenceService.queueForSave(business, {
-        lastProcessedUrl: job.url,
-        processedCount: 1, // Aggregated later
-        failedCount: 0,
-        remainingCount: 0,
-        queueSnapshot: queueSnapshot,
-        workerSnapshot: {}
-      });
-    } catch (error) {
-      logger.error("PostgreSQL connection unavailable. Skipping DB save.");
-    }
+    await persistenceService.queueForSave(business, {
+      lastProcessedUrl: job.url,
+      processedCount: 1, // Aggregated later
+      failedCount: 0,
+      remainingCount: 0,
+      queueSnapshot: queueSnapshot,
+      workerSnapshot: {}
+    });
     
     job.status = JobStatus.COMPLETED;
-
-    // For Sandbox Verification: Exit after 5 successful extractions
-    extractedCount++;
-    if (extractedCount >= (ConfigService.get('MAX_TEST_BUSINESSES') as number)) {
-      logger.info(`[VERIFICATION] Successfully extracted ${extractedCount} businesses. Exiting gracefully.`);
-      if (metricsInterval) clearInterval(metricsInterval);
-      process.exit(0);
-    }
   });
 
   // Track Metrics
@@ -118,16 +96,12 @@ async function bootstrap() {
       await new Promise(r => setTimeout(r, 1000));
     }
     
-    try {
-      // Flush any remaining batch
-      await persistenceService.flush({
-        processedCount: 0, failedCount: 0, remainingCount: 0, queueSnapshot: [], workerSnapshot: {}
-      });
-      
-      await jobRepo.markComplete(jobId);
-    } catch (error) {
-      logger.error("PostgreSQL connection unavailable. Skipping DB flush.");
-    }
+    // Flush any remaining batch
+    await persistenceService.flush({
+      processedCount: 0, failedCount: 0, remainingCount: 0, queueSnapshot: [], workerSnapshot: {}
+    });
+    
+    await jobRepo.markComplete(jobId);
     
     await workerPool.stop();
     await mapsProvider.cleanup();
