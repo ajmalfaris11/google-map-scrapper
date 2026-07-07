@@ -9,7 +9,6 @@ export class MemoryQueue<T> implements Queue<T> {
   }
 
   async dequeue(): Promise<T | null> {
-    if (this.paused) return null;
     return this.items.shift() || null;
   }
 
