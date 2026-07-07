@@ -29,10 +29,12 @@ export class PersistenceService {
 
     const startTime = Date.now();
     try {
-      // Must occur in a single Prisma transaction!
       await prisma.$transaction(async (tx) => {
         await this.businessRepo.saveBatch(businessesToSave, this.jobId, tx);
         await this.checkpointRepo.save({ ...checkpointContext, jobId: this.jobId }, tx);
+      }, {
+        maxWait: 15000,
+        timeout: 30000
       });
 
       EventBus.publish(EventTypes.BusinessSaved, { count: businessesToSave.length, timeMs: Date.now() - startTime });
