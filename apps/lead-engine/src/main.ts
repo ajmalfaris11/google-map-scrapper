@@ -57,7 +57,25 @@ async function processJob(job: any) {
     const contextManager = new BrowserContextManager(browser);
     const context = await contextManager.createContext();
     
-    const workerPool = new WorkerPool(extractionQueue, context, concurrency);
+    let shouldHalt = false;
+    let jobCancelled = false;
+
+    // Check job status periodically
+    const statusInterval = setInterval(async () => {
+      try {
+        const currentStatus = await jobService.getJobStatus(job.id);
+        if (currentStatus === 'PAUSED' || currentStatus === 'CANCELLED') {
+          shouldHalt = true;
+          if (currentStatus === 'CANCELLED') {
+            jobCancelled = true;
+          }
+        }
+      } catch (err) {
+        logger.error({ err }, 'Error checking job status');
+      }
+    }, 3000);
+
+    const workerPool = new WorkerPool(extractionQueue, context, concurrency, () => shouldHalt);
     workerPool.start();
     await jobService.log(job.id, `Worker pool started with concurrency ${concurrency}.`, 'INFO');
     
@@ -74,16 +92,27 @@ async function processJob(job: any) {
     totalFound = await extractionQueue.size();
     await jobService.log(job.id, `Discovered ${totalFound} URLs to extract.`, 'INFO');
     
-    // Wait for queue to empty
-    while (await extractionQueue.size() > 0) {
+    // Wait for queue to empty or halt
+    while (await extractionQueue.size() > 0 && !shouldHalt) {
       await new Promise(r => setTimeout(r, 2000));
     }
     
+    clearInterval(statusInterval);
     await workerPool.stop();
     await mapsProvider.cleanup();
     
-    await jobService.log(job.id, `Extraction finished. Total processed: ${processed}`, 'INFO');
-    await jobService.markJobCompleted(job.id, totalFound);
+    if (shouldHalt) {
+      if (jobCancelled) {
+        await jobService.log(job.id, `Extraction cancelled by user. Total processed: ${processed}`, 'WARN');
+        // Status is already CANCELLED in DB
+      } else {
+        await jobService.log(job.id, `Extraction paused by user. Total processed: ${processed}`, 'WARN');
+        // Status is already PAUSED in DB
+      }
+    } else {
+      await jobService.log(job.id, `Extraction finished. Total processed: ${processed}`, 'INFO');
+      await jobService.markJobCompleted(job.id, totalFound);
+    }
 
   } catch (error: any) {
     logger.error({ err: error, jobId: job.id }, 'Job failed');
