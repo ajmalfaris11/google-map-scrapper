@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { Request } from 'express';
@@ -13,6 +13,11 @@ export class JobsController {
     return this.jobsService.createJob(body);
   }
 
+  @Get('stats/overview')
+  getOverviewStats() {
+    return this.jobsService.getOverviewStats();
+  }
+
   @Get()
   getJobs(@Req() req: Request) {
     return this.jobsService.getJobs();
@@ -23,9 +28,19 @@ export class JobsController {
     return this.jobsService.getJobById(id);
   }
 
-  @Post(':id/cancel')
+  @Patch(':id/cancel')
   cancelJob(@Param('id') id: string) {
     return this.jobsService.cancelJob(id);
+  }
+
+  @Patch(':id/pause')
+  pauseJob(@Param('id') id: string) {
+    return this.jobsService.pauseJob(id);
+  }
+
+  @Patch(':id/resume')
+  resumeJob(@Param('id') id: string) {
+    return this.jobsService.resumeJob(id);
   }
 
   @Post(':id/retry')
