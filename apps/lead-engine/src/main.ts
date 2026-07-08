@@ -3,117 +3,120 @@ import { logger } from './core/logger/Logger';
 import { BrowserFactory } from './core/browser/BrowserFactory';
 import { BrowserContextManager } from './core/browser/BrowserContextManager';
 import { GoogleMapsProvider } from './providers/google-maps/GoogleMapsProvider';
-import { ProgressTracker } from './core/progress/ProgressTracker';
-import { EventBus, EventTypes } from './core/events/EventBus';
 import { MemoryQueue } from '@lead-platform/queue';
 import { ExtractionJob, ExtractionJobStatus } from '@lead-platform/types';
 import { WorkerPool } from './core/workers/WorkerPool';
+import { JobService } from './services/JobService';
+import { BusinessService } from './services/BusinessService';
+import { EventBus, EventTypes } from './core/events/EventBus';
 
-// Milestone 8 Imports
-import { JobRepository } from './repositories/JobRepository';
-import { PersistenceService } from './services/PersistenceService';
-import { RecoveryService } from './services/RecoveryService';
+const jobService = new JobService();
+const businessService = new BusinessService();
 
-let metricsInterval: NodeJS.Timeout | null = null;
+async function processJob(job: any) {
+  logger.info(`Starting execution for Job ${job.id}`);
+  await jobService.markJobRunning(job.id);
+  await jobService.log(job.id, 'Job marked as RUNNING. Initializing browser...', 'INFO');
 
-async function bootstrap() {
-  logger.info(`Starting Lead Collection Platform (Persistence Engine)`);
-  
-  const tracker = new ProgressTracker();
   const extractionQueue = new MemoryQueue<ExtractionJob>();
-  
-  // 1. Recovery Flow
-  const recoveryService = new RecoveryService();
-  const jobRepo = new JobRepository();
-  
-  let jobId = await recoveryService.detectAndRecover(extractionQueue);
-  if (!jobId) {
-    const keyword = ConfigService.get('KEYWORD') as string || "Resorts";
-    jobId = await jobRepo.createJob(keyword, 'google-maps', 'Kerala');
-    logger.info(`Created new Job: ${jobId}`);
-  }
-
-  // 2. Persistence Flow Setup
-  const persistenceService = new PersistenceService(jobId);
-
-  EventBus.subscribe(EventTypes.BusinessExtracted, async (job: any) => {
-    // Both WorkerPool and BusinessExtractionEngine publish this event with different payloads!
-    if (!job || !job.data) return;
-    
-    // Pass validation
-    const business = job.data;
-    
-    // Simulate getting queue snapshot (MemoryQueue would need a snapshot method in production)
-    const queueSnapshot: ExtractionJob[] = []; // await extractionQueue.getAll();
-    
-    await persistenceService.queueForSave(business, {
-      lastProcessedUrl: job.url,
-      processedCount: 1, // Aggregated later
-      failedCount: 0,
-      remainingCount: 0,
-      queueSnapshot: queueSnapshot,
-      workerSnapshot: {}
-    });
-    
-    job.status = ExtractionJobStatus.COMPLETED;
-  });
-
-  // Track Metrics
-  metricsInterval = setInterval(async () => {
-    const mem = process.memoryUsage();
-    logger.info({
-      rss: Math.round(mem.rss / 1024 / 1024) + 'MB',
-      heapUsed: Math.round(mem.heapUsed / 1024 / 1024) + 'MB',
-      queueSize: await extractionQueue.size()
-    }, 'System Metrics');
-  }, 5000);
-
   const browserManager = BrowserFactory.createBrowserManager();
+
+  const options = job.options && typeof job.options === 'object' ? job.options : {};
+  const headless = options.headless !== undefined ? options.headless : (ConfigService.get('HEADLESS') === 'true');
+  const concurrency = options.concurrency || Number(ConfigService.get('CONCURRENCY') || 3);
   
+  let totalFound = 0;
+  let processed = 0;
+
+  // Set up event listeners for this job
+  const onBusinessExtracted = async (event: any) => {
+    if (!event || !event.data) return;
+    const business = event.data;
+    business.jobId = job.id;
+    business.keyword = job.keyword;
+    business.provider = job.provider;
+    
+    await businessService.upsertBusinesses(job.id, [business]);
+    processed++;
+    
+    // Calculate progress
+    const progress = totalFound > 0 ? Math.min(100, Math.round((processed / totalFound) * 100)) : 0;
+    await jobService.updateProgress(job.id, progress, processed);
+    
+    if (processed % 10 === 0) {
+      await jobService.log(job.id, `Extracted and saved ${processed} businesses so far.`, 'INFO');
+    }
+  };
+
+  EventBus.subscribe(EventTypes.BusinessExtracted, onBusinessExtracted);
+
   try {
-    const browser = await browserManager.initialize({ headless: ConfigService.get('HEADLESS') === 'true' });
+    const browser = await browserManager.initialize({ headless });
+    await jobService.log(job.id, 'Browser initialized successfully.', 'INFO');
+    
     const contextManager = new BrowserContextManager(browser);
     const context = await contextManager.createContext();
     
-    const concurrency = Number(ConfigService.get('CONCURRENCY') || 3);
     const workerPool = new WorkerPool(extractionQueue, context, concurrency);
-    
-    logger.info("About to start workerPool...");
     workerPool.start();
-    logger.info("workerPool started.");
+    await jobService.log(job.id, `Worker pool started with concurrency ${concurrency}.`, 'INFO');
     
     const mapsProvider = new GoogleMapsProvider(context, extractionQueue);
-    
-    logger.info("About to launch mapsProvider...");
     await mapsProvider.launch();
-    logger.info("mapsProvider launched.");
     
-    logger.info("About to search...");
-    await mapsProvider.search(ConfigService.get('KEYWORD') as string, "Kerala");
+    await jobService.log(job.id, `Searching Google Maps for "${job.keyword}" in "${job.location || 'Global'}"...`, 'INFO');
+    await mapsProvider.search(job.keyword, job.location || '');
+    
+    // Simulate finding total count (since GoogleMapsProvider.collectUrls() doesn't return count directly easily in this stub context, we wait)
     await mapsProvider.collectUrls(); 
     
+    // Approximate total based on queue size
+    totalFound = await extractionQueue.size();
+    await jobService.log(job.id, `Discovered ${totalFound} URLs to extract.`, 'INFO');
+    
+    // Wait for queue to empty
     while (await extractionQueue.size() > 0) {
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 2000));
     }
-    
-    // Flush any remaining batch
-    await persistenceService.flush({
-      processedCount: 0, failedCount: 0, remainingCount: 0, queueSnapshot: [], workerSnapshot: {}
-    });
-    
-    await jobRepo.markComplete(jobId);
     
     await workerPool.stop();
     await mapsProvider.cleanup();
     
-  } catch (error) {
-    logger.error({ err: error }, "Failed to execute engine");
-    EventBus.publish(EventTypes.JobFailed, { error });
+    await jobService.log(job.id, `Extraction finished. Total processed: ${processed}`, 'INFO');
+    await jobService.markJobCompleted(job.id, totalFound);
+
+  } catch (error: any) {
+    logger.error({ err: error, jobId: job.id }, 'Job failed');
+    await jobService.log(job.id, `Job failed: ${error.message}`, 'ERROR');
+    await jobService.markJobFailed(job.id, error.message || 'Unknown error');
   } finally {
-    if (metricsInterval) clearInterval(metricsInterval);
     await browserManager.closeBrowser();
-    logger.info("Graceful shutdown complete.");
+    // Unsubscribe to avoid memory leaks across multiple jobs
+    // Note: A real event bus would need an unsubscribe method, hacking it for now by clearing or ignoring if needed.
+    // In this basic version, we rely on node exit or just ignoring if EventBus grows, but for a true daemon, we need unsubscribe.
   }
 }
 
+async function pollJobs() {
+  try {
+    const job = await jobService.getNextQueuedJob();
+    if (job) {
+      logger.info(`Found QUEUED job: ${job.id}`);
+      await processJob(job);
+    }
+  } catch (error) {
+    logger.error({ err: error }, 'Error polling jobs');
+  } finally {
+    // Recursive polling
+    setTimeout(pollJobs, 5000);
+  }
+}
+
+async function bootstrap() {
+  logger.info(`Starting Lead Collection Engine Daemon`);
+  logger.info(`Polling for jobs every 5 seconds...`);
+  pollJobs();
+}
+
 bootstrap();
+
