@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LiveJobsTable from "@/components/LiveJobsTable";
 
 export default function Home() {
   return (
@@ -36,9 +37,7 @@ export default function Home() {
 
       <div className="mt-4 bg-bg-secondary border border-border-color rounded-2xl p-8">
         <h2 className="text-xl font-semibold mb-6">Recent Jobs</h2>
-        <div className="text-text-muted">
-          Integration with NestJS API pending. Table will render here.
-        </div>
+        <LiveJobsTable />
       </div>
     </div>
   );
