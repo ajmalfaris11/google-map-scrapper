@@ -14,8 +14,13 @@ export class ResultCollector {
     const collectedInBatch: string[] = [];
     
     const hrefs = await this.page.evaluate((selector) => {
-      const anchors = Array.from(document.querySelectorAll(selector));
-      return anchors.map(a => a.getAttribute('href') || '');
+      const anchors = Array.from(document.querySelectorAll(`${selector}:not([data-collected="true"])`));
+      const newUrls: string[] = [];
+      for (const a of anchors) {
+        newUrls.push(a.getAttribute('href') || '');
+        a.setAttribute('data-collected', 'true');
+      }
+      return newUrls;
     }, BusinessSelectors.businessCardLink);
 
     for (const rawUrl of hrefs) {

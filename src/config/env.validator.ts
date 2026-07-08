@@ -16,7 +16,8 @@ const envSchema = z.object({
   PAGE_TIMEOUT: z.string().transform(Number).default('30000'),
   CONCURRENCY: z.string().transform(Number).default('3'),
   QUEUE_HIGH_WATER_MARK: z.string().transform(Number).default('50'),
-  QUEUE_LOW_WATER_MARK: z.string().transform(Number).default('20')
+  QUEUE_LOW_WATER_MARK: z.string().transform(Number).default('20'),
+  MAX_TEST_BUSINESSES: z.string().transform(Number).default('200')
 });
 
 export const env = envSchema.parse(process.env);

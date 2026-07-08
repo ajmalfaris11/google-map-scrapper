@@ -38,7 +38,7 @@ for (const file of files) {
 // Ensure unique files
 const uniqueFiles = [...new Set(allFilesToCommit)];
 
-let commitCount = 10; // Start at 10 since we already did 10 commits
+let commitCount = 35; // Start at 35 since we already did 35 commits on July 5
 let currentDay = 5;
 
 for (const file of uniqueFiles) {
