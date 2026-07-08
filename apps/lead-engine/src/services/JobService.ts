@@ -8,6 +8,14 @@ export class JobService {
     });
   }
 
+  async getJobStatus(jobId: string) {
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: { status: true },
+    });
+    return job?.status;
+  }
+
   async markJobRunning(jobId: string) {
     return prisma.job.update({
       where: { id: jobId },
