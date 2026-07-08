@@ -4,62 +4,76 @@
 
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f4f4f5;
-  --bg-tertiary: #e4e4e7;
-  --text-primary: #09090b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
-  --accent-primary: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-glow: rgba(37, 99, 235, 0.15);
-  --success: #059669;
-  --warning: #d97706;
-  --error: #dc2626;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(0, 0, 0, 0.15);
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-border: rgba(0, 0, 0, 0.05);
-}
-
-.dark {
-  --bg-primary: #0a0a0b;
-  --bg-secondary: #121214;
-  --bg-tertiary: #1a1a1e;
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1a9;
-  --text-muted: #71717a;
-  --accent-primary: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-glow: rgba(59, 130, 246, 0.15);
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --accent-primary: #0052ff;
+  --accent-hover: #0040d1;
+  --accent-glow: rgba(0, 82, 255, 0.15);
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  --glass-bg: rgba(18, 18, 20, 0.6);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+
+  --bg-frame: #0052ff;
+  --bg-canvas: #ffffff;
+  --text-frame: #ffffff;
+  
+  --card-hero-start: #0052ff;
+  --card-hero-end: #0040d1;
+  --card-hero-text: #ffffff;
+  
+  --card-secondary-bg: #111111;
+  --card-secondary-text: #ffffff;
+}
+
+.dark {
+  --bg-primary: #18181b;
+  --bg-secondary: #09090b;
+  --bg-tertiary: #27272a;
+  --text-primary: #f8fafc;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent-primary: #0052ff;
+  --accent-hover: #3b82f6;
+  --accent-glow: rgba(0, 82, 255, 0.2);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --glass-bg: rgba(24, 24, 27, 0.6);
   --glass-border: rgba(255, 255, 255, 0.05);
+
+  --bg-frame: #09090b;
+  --bg-canvas: #18181b;
+  --text-frame: #f8fafc;
+  
+  --card-hero-start: #0052ff;
+  --card-hero-end: #0040d1;
+  --card-hero-text: #ffffff;
+  
+  --card-secondary-bg: #111111;
+  --card-secondary-text: #ffffff;
 }
 
 @layer base {
   body {
-    @apply bg-bg-primary text-text-primary;
+    @apply bg-bg-frame text-text-primary;
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    display: none;
   }
   
-  ::-webkit-scrollbar-track {
-    @apply bg-bg-primary;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-bg-tertiary rounded;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-border-hover;
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
