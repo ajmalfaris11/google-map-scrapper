@@ -1,5 +1,5 @@
 import { BaseError, NavigationError, ExtractionError, ValidationError } from '../errors/Errors';
-import { ConfigService } from '../../config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 import { logger } from '../logger/Logger';
 
 export class RetryService {

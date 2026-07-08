@@ -1,12 +1,12 @@
-import { ConfigService } from './config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 import { logger } from './core/logger/Logger';
 import { BrowserFactory } from './core/browser/BrowserFactory';
 import { BrowserContextManager } from './core/browser/BrowserContextManager';
 import { GoogleMapsProvider } from './providers/google-maps/GoogleMapsProvider';
 import { ProgressTracker } from './core/progress/ProgressTracker';
 import { EventBus, EventTypes } from './core/events/EventBus';
-import { MemoryQueue } from './core/queue/MemoryQueue';
-import { ExtractionJob, JobStatus } from './models/ExtractionJob';
+import { MemoryQueue } from '@lead-platform/queue';
+import { ExtractionJob, JobStatus } from '@lead-platform/types';
 import { WorkerPool } from './core/workers/WorkerPool';
 
 // Milestone 8 Imports

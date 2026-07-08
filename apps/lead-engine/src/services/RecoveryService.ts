@@ -1,7 +1,7 @@
 import { JobRepository } from '../repositories/JobRepository';
 import { CheckpointRepository } from '../repositories/CheckpointRepository';
-import { Queue } from '../core/queue/Queue';
-import { ExtractionJob, JobStatus } from '../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob, JobStatus } from '@lead-platform/types';
 import { EventBus, EventTypes } from '../core/events/EventBus';
 import { logger } from '../core/logger/Logger';
 

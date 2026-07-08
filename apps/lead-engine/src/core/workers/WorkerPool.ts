@@ -1,5 +1,5 @@
-import { Queue } from '../queue/Queue';
-import { ExtractionJob, JobStatus } from '../../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob, JobStatus } from '@lead-platform/types';
 import { BusinessExtractionEngine } from '../../providers/google-maps/extractors/BusinessExtractionEngine';
 import { BrowserContext } from 'playwright';
 import { PageManager } from '../browser/PageManager';

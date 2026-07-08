@@ -1,4 +1,4 @@
-import { BusinessModel } from '../../../models/Business';
+import { BusinessModel } from '@lead-platform/types';
 import { BusinessNormalizer } from './BusinessNormalizer';
 
 export class BusinessParser {

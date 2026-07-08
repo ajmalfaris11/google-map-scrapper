@@ -17,10 +17,14 @@
     "pino-pretty": "^11.1.0",
     "pino-roll": "^4.0.0",
     "playwright": "^1.44.1",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@lead-platform/config": "workspace:*",
+    "@lead-platform/database": "workspace:*",
+    "@lead-platform/shared": "workspace:*",
+    "@lead-platform/types": "workspace:*",
+    "@lead-platform/queue": "workspace:*"
   },
   "devDependencies": {
-    "@prisma/client": "^5.22.0",
     "@types/node": "^20.12.12",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",

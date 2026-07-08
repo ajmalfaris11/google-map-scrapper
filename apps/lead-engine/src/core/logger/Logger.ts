@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { env } from '../../config/env.validator';
+import { env } from '@lead-platform/config';
 import fs from 'fs';
 import path from 'path';
 

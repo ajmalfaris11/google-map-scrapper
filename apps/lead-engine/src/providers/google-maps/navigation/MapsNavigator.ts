@@ -5,7 +5,7 @@ import { RetryService } from '../../../core/retry/RetryService';
 import { EventBus, EventTypes } from '../../../core/events/EventBus';
 import { NavigationError } from '../../../core/errors/Errors';
 import { logger } from '../../../core/logger/Logger';
-import { ConfigService } from '../../../config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 
 export class MapsNavigator {
   constructor(private page: Page) {}

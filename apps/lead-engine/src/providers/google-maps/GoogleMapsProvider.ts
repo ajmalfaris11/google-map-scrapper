@@ -5,8 +5,8 @@ import { ResultCollector } from './scroll/ResultCollector';
 import { ResultCache } from './scroll/ResultCache';
 import { PageManager } from '../../core/browser/PageManager';
 import { BrowserContext, Page } from 'playwright';
-import { Queue } from '../../core/queue/Queue';
-import { ExtractionJob } from '../../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob } from '@lead-platform/types';
 
 export class GoogleMapsProvider extends BaseProvider {
   private navigator: MapsNavigator | null = null;

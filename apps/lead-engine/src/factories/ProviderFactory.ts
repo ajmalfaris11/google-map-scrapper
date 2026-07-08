@@ -1,8 +1,8 @@
 import { BaseProvider } from '../providers/base/BaseProvider';
 import { GoogleMapsProvider } from '../providers/google-maps/GoogleMapsProvider';
 import { BrowserContext } from 'playwright';
-import { Queue } from '../core/queue/Queue';
-import { ExtractionJob } from '../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob } from '@lead-platform/types';
 
 export class ProviderFactory {
   public static createProvider(type: string, context?: BrowserContext, queue?: Queue<ExtractionJob>): BaseProvider {

@@ -1,6 +1,6 @@
 import prisma from './PrismaClient';
 import { Prisma } from '@prisma/client';
-import { BusinessModel } from '../models/Business';
+import { BusinessModel } from '@lead-platform/types';
 
 export class BusinessRepository {
   async saveBatch(businesses: BusinessModel[], jobId: string, tx?: Prisma.TransactionClient): Promise<void> {

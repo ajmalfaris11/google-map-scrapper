@@ -2,10 +2,10 @@ import { Page } from 'playwright';
 import { SearchSelectors } from '../selectors/SearchSelectors';
 import { BusinessSelectors } from '../selectors/BusinessSelectors';
 import { ResultCollector } from './ResultCollector';
-import { ConfigService } from '../../../config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 import { EventBus, EventTypes } from '../../../core/events/EventBus';
-import { Queue } from '../../../core/queue/Queue';
-import { ExtractionJob } from '../../../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob } from '@lead-platform/types';
 import { logger } from '../../../core/logger/Logger';
 
 export class InfiniteScroller {

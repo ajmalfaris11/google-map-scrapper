@@ -4,7 +4,7 @@ import { NavigationError } from '../../../core/errors/Errors';
 import { EventBus, EventTypes } from '../../../core/events/EventBus';
 import { BusinessSelectors } from '../selectors/BusinessSelectors';
 import { SearchSelectors } from '../selectors/SearchSelectors';
-import { ConfigService } from '../../../config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 
 export class BusinessNavigator {
   constructor(private page: Page) {}

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { JobStatus } from '../models/Job';
+import { JobStatus } from '@lead-platform/types';
 
 export const JobSchema = z.object({
   keyword: z.string().min(1),

@@ -3,8 +3,8 @@ import { BusinessSelectors } from '../selectors/BusinessSelectors';
 import { ResultValidator } from './ResultValidator';
 import { ResultCache } from './ResultCache';
 import { EventBus, EventTypes } from '../../../core/events/EventBus';
-import { Queue } from '../../../core/queue/Queue';
-import { ExtractionJob, JobStatus } from '../../../models/ExtractionJob';
+import { Queue } from '@lead-platform/queue';
+import { ExtractionJob, JobStatus } from '@lead-platform/types';
 import crypto from 'crypto';
 
 export class ResultCollector {

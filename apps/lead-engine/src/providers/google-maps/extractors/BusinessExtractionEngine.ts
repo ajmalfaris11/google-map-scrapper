@@ -2,10 +2,10 @@ import { Page } from 'playwright';
 import { BusinessNavigator } from '../navigation/BusinessNavigator';
 import { BusinessExtractor } from './BusinessExtractor';
 import { BusinessParser } from '../parsers/BusinessParser';
-import { BusinessValidator } from '../../../validators/BusinessValidator';
+import { BusinessValidator } from '@lead-platform/shared';
 import { EventBus, EventTypes } from '../../../core/events/EventBus';
 import { logger } from '../../../core/logger/Logger';
-import { BusinessModel } from '../../../models/Business';
+import { BusinessModel } from '@lead-platform/types';
 
 export class BusinessExtractionEngine {
   private navigator: BusinessNavigator;

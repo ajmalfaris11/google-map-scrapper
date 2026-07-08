@@ -1,5 +1,5 @@
 import { Browser, chromium, LaunchOptions } from 'playwright';
-import { ConfigService } from '../../config/ConfigService';
+import { ConfigService } from '@lead-platform/config';
 import { EventBus, EventTypes } from '../events/EventBus';
 
 export class BrowserManager {

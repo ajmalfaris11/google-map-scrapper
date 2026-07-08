@@ -1,7 +1,7 @@
-import prisma from '../repositories/PrismaClient';
+import prisma from '@lead-platform/database';
 import { BusinessRepository } from '../repositories/BusinessRepository';
 import { CheckpointRepository, CheckpointData } from '../repositories/CheckpointRepository';
-import { BusinessModel } from '../models/Business';
+import { BusinessModel } from '@lead-platform/types';
 import { EventBus, EventTypes } from '../core/events/EventBus';
 import { logger } from '../core/logger/Logger';
 
