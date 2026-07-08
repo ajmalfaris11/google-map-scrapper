@@ -14,17 +14,24 @@ export class EventsController {
       const poll = async () => {
         try {
           // Poll for running or queued jobs and their progress
+          const tenSecondsAgo = new Date(Date.now() - 10000);
           const jobs = await this.db.job.findMany({
             where: {
-              status: { in: ['QUEUED', 'RUNNING'] }
+              OR: [
+                { status: { in: ['QUEUED', 'RUNNING'] } },
+                { status: { in: ['COMPLETED', 'FAILED'] }, updatedAt: { gte: tenSecondsAgo } }
+              ]
             },
             select: {
               id: true,
               status: true,
               progress: true,
-              processedCount: true,
+              processed: true,
               totalFound: true,
-              currentBusiness: true,
+              logs: {
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
             }
           });
           
