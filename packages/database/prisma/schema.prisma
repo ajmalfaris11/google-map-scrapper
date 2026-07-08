@@ -5,6 +5,17 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Job {
@@ -12,12 +23,29 @@ model Job {
   keyword      String
   location     String?
   provider     String
-  status       String       @default("RUNNING")
+  status       String       @default("QUEUED")
+  options      Json?
+  errorMessage String?
+  progress     Int          @default(0)
+  totalFound   Int          @default(0)
+  processed    Int          @default(0)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
   businesses   Business[]
   checkpoints  Checkpoint[]
+  logs         JobLog[]
+}
+
+model JobLog {
+  id        String   @id @default(uuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  message   String
+  level     String   @default("INFO")
+  createdAt DateTime @default(now())
+
+  @@index([jobId])
 }
 
 model Business {
@@ -39,7 +67,7 @@ model Business {
   openingHours  String?
   googleMapsUrl String?  @unique
   placeId       String?  @unique
-  status        String   @default("ACTIVE")
+  status        String   @default("NEW")
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -64,3 +92,4 @@ model Checkpoint {
   
   @@index([jobId])
 }
+
