@@ -4,6 +4,7 @@
   "description": "Google Maps Lead Collector",
   "main": "src/main.ts",
   "scripts": {
+    "dev": "tsx watch src/main.ts",
     "scrape": "tsx src/main.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
