@@ -8,10 +8,21 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-outfit)', 'sans-serif'],
+      },
       colors: {
         'bg-primary': 'var(--bg-primary)',
         'bg-secondary': 'var(--bg-secondary)',
         'bg-tertiary': 'var(--bg-tertiary)',
+        'bg-frame': 'var(--bg-frame)',
+        'bg-canvas': 'var(--bg-canvas)',
+        'text-frame': 'var(--text-frame)',
+        'card-hero-start': 'var(--card-hero-start)',
+        'card-hero-end': 'var(--card-hero-end)',
+        'card-hero-text': 'var(--card-hero-text)',
+        'card-secondary-bg': 'var(--card-secondary-bg)',
+        'card-secondary-text': 'var(--card-secondary-text)',
         'text-primary': 'var(--text-primary)',
         'text-secondary': 'var(--text-secondary)',
         'text-muted': 'var(--text-muted)',
