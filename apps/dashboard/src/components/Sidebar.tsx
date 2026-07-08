@@ -51,54 +51,53 @@ export function Sidebar() {
           <Zap size={20} />
         </div>
       </div>
-      
-      <nav className="flex-1 flex flex-col justify-center gap-6 items-center w-full">
-        <Link 
-          href="/" 
-          className={`group relative flex items-center justify-center w-12 h-12 rounded-full transition-all ${
-            pathname === '/' 
-              ? 'bg-bg-canvas text-accent-primary shadow-lg scale-110' 
-              : 'text-text-frame/80 hover:text-text-frame hover:bg-white/10'
-          }`}
-        >
-          <LayoutDashboard size={22} />
-          <span className="absolute left-16 bg-bg-canvas text-text-primary px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
-            Overview
-          </span>
-        </Link>
-        
-        <Link 
-          href="/jobs/new" 
-          className={`group relative flex items-center justify-center w-12 h-12 rounded-full transition-all ${
-            pathname === '/jobs/new' 
-              ? 'bg-bg-canvas text-accent-primary shadow-lg scale-110' 
-              : 'text-text-frame/80 hover:text-text-frame hover:bg-white/10'
-          }`}
-        >
-          <Search size={22} />
-          <span className="absolute left-16 bg-bg-canvas text-text-primary px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
-            Search
-          </span>
-        </Link>
-        
-        <Link 
-          href="/leads" 
-          className={`group relative flex items-center justify-center w-12 h-12 rounded-full transition-all ${
-            pathname === '/leads' 
-              ? 'bg-bg-canvas text-accent-primary shadow-lg scale-110' 
-              : 'text-text-frame/80 hover:text-text-frame hover:bg-white/10'
-          }`}
-        >
-          <Users size={22} />
-          <span className="absolute left-16 bg-bg-canvas text-text-primary px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
-            Leads
-          </span>
-        </Link>
-      </nav>
-      
+
+      <div className="flex-1 flex items-center w-full justify-center">
+        <nav className="flex flex-col gap-4 items-center bg-white p-2.5 rounded-full shadow-2xl">
+          <Link
+            href="/"
+            className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/'
+              ? 'bg-accent-primary text-white shadow-lg scale-110'
+              : 'text-accent-primary hover:bg-accent-primary/10'
+              }`}
+          >
+            <LayoutDashboard size={22} />
+            <span className="absolute left-20 bg-bg-canvas text-text-blue-500 border-blue-500 px-6 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
+              Overview
+            </span>
+          </Link>
+
+          <Link
+            href="/jobs/new"
+            className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/jobs/new'
+              ? 'bg-accent-primary text-white shadow-lg scale-110'
+              : 'text-accent-primary hover:bg-accent-primary/10'
+              }`}
+          >
+            <Search size={22} />
+            <span className="absolute left-20 bg-bg-canvas text-blue-500 border-blue-500 px-6 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
+              Search
+            </span>
+          </Link>
+
+          <Link
+            href="/leads"
+            className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/leads'
+              ? 'bg-accent-primary text-white shadow-lg scale-110'
+              : 'text-accent-primary hover:bg-accent-primary/10'
+              }`}
+          >
+            <Users size={22} />
+            <span className="absolute left-20 bg-bg-canvas text-text-blue-500 border-blue-500 px-6 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
+              Leads
+            </span>
+          </Link>
+        </nav>
+      </div>
+
       {user && (
         <div className="relative w-full flex justify-center mt-auto" ref={menuRef}>
-          <button 
+          <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="w-10 h-10 rounded-full bg-white text-bg-frame flex items-center justify-center font-bold text-sm shadow-lg uppercase transition-all hover:opacity-90 focus:outline-none"
           >
