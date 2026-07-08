@@ -13,7 +13,8 @@ export class WorkerPool {
   constructor(
     private queue: Queue<ExtractionJob>, 
     private context: BrowserContext,
-    private concurrency: number
+    private concurrency: number,
+    private shouldHalt?: () => boolean
   ) {}
 
   async start() {
@@ -34,6 +35,11 @@ export class WorkerPool {
     const page = await pageManager.createPage();
     
     while (this.isRunning || await this.queue.size() > 0) {
+      if (this.shouldHalt && this.shouldHalt()) {
+        logger.info(`Worker ${workerId} halted due to external request.`);
+        break;
+      }
+
       if (await this.queue.isPaused() && await this.queue.size() === 0) {
         await new Promise(r => setTimeout(r, 1000));
         continue;
