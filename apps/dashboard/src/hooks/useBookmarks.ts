@@ -23,9 +23,14 @@ export function useBookmarks() {
       } else {
         next = [...prev, id];
       }
-      localStorage.setItem('srapper_bookmarks', JSON.stringify(next));
-      // Dispatch a custom event so other instances of the hook (like on the same page) can sync
-      window.dispatchEvent(new Event('bookmarks_updated'));
+      
+      // Delay side effects to keep state updater pure
+      setTimeout(() => {
+        localStorage.setItem('srapper_bookmarks', JSON.stringify(next));
+        // Dispatch a custom event so other instances of the hook (like on the same page) can sync
+        window.dispatchEvent(new Event('bookmarks_updated'));
+      }, 0);
+      
       return next;
     });
   };
