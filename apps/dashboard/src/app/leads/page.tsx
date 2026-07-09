@@ -2,7 +2,15 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { SortDropdown } from "@/components/SortDropdown";
+import { StatusDropdown } from "@/components/StatusDropdown";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useDebounce } from "@/hooks/useDebounce";
 import { api } from "@/lib/api";
 import {
   Mail,
@@ -18,7 +26,8 @@ import {
   Filter,
   X,
   Check,
-  Copy
+  Copy,
+  Download
 } from "lucide-react";
 import {
   createColumnHelper,
@@ -26,6 +35,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { BookmarkButton } from "@/components/BookmarkButton";
 
 interface Business {
   id: string;
@@ -205,18 +215,9 @@ const columns = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    cell: (info) => {
-      const status = info.getValue();
-      return (
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ${
-          status === 'NEW' ? 'bg-success/20 text-success' :
-          status === 'CONTACTED' ? 'bg-accent-glow text-accent-primary' :
-          'bg-gray-100 text-gray-500'
-        }`}>
-          {status}
-        </span>
-      );
-    },
+    cell: (info) => (
+      <StatusDropdown leadId={info.row.original.id} currentStatus={info.getValue() as string} />
+    ),
   }),
 ];
 
@@ -228,74 +229,87 @@ export default function LeadsPage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   
   // Filter State
-  const [sortBy, setSortBy] = useState<"name" | "rating" | "recent" | "category">("recent");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const [statusFilter, setStatusFilter] = useState<string>("any");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [requireEmail, setRequireEmail] = useState(false);
-  const [requirePhone, setRequirePhone] = useState(false);
-  const [requireWebsite, setRequireWebsite] = useState(false);
+  const [requireEmail, setRequireEmail] = useState<"any" | "yes" | "no">("any");
+  const [requirePhone, setRequirePhone] = useState<"any" | "yes" | "no">("any");
+  const [requireWebsite, setRequireWebsite] = useState<"any" | "yes" | "no">("any");
   const [minRating, setMinRating] = useState<number>(0);
 
-  const { data: leadsResponse, isLoading, error } = useQuery({
-    queryKey: ["leads"],
-    queryFn: async () => {
-      const response = await api.get("/businesses");
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ["leads", { 
+      search: debouncedSearch, 
+      category: selectedCategories.join(','), 
+      requireEmail, 
+      requirePhone, 
+      requireWebsite, 
+      minRating, 
+      sortBy,
+      status: statusFilter
+    }],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await api.get("/businesses", {
+        params: {
+          page: pageParam,
+          limit: 50,
+          status: statusFilter !== 'any' ? statusFilter : undefined,
+          search: debouncedSearch || undefined,
+          category: selectedCategories.join(',') || undefined,
+          requireEmail: requireEmail !== 'any' ? requireEmail : undefined,
+          requirePhone: requirePhone !== 'any' ? requirePhone : undefined,
+          requireWebsite: requireWebsite !== 'any' ? requireWebsite : undefined,
+          minRating: minRating > 0 ? minRating : undefined,
+          sortBy
+        }
+      });
       return response.data;
     },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.page < lastPage.totalPages) return lastPage.page + 1;
+      return undefined;
+    }
   });
+
+  const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.1 });
+
+  useEffect(() => {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Extract unique categories for the filter modal
   const allCategories = useMemo(() => {
-    if (!leadsResponse?.data) return [];
-    const cats = leadsResponse.data.map((l: Business) => l.category).filter(Boolean);
-    return Array.from(new Set(cats)) as string[];
-  }, [leadsResponse]);
+    const cats = new Set<string>();
+    data?.pages.forEach(page => {
+      page.data.forEach((l: Business) => {
+        if (l.category) cats.add(l.category);
+      });
+    });
+    return Array.from(cats);
+  }, [data]);
 
   const leads = useMemo(() => {
-    let raw: Business[] = leadsResponse?.data || [];
-    
-    // 1. Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      raw = raw.filter(l => 
-        l.name.toLowerCase().includes(q) || 
-        (l.address && l.address.toLowerCase().includes(q))
-      );
-    }
-
-    // 2. Category Filter
-    if (selectedCategories.length > 0) {
-      raw = raw.filter(l => l.category && selectedCategories.includes(l.category));
-    }
-
-    // 3. Contact Requirements
-    if (requireEmail) raw = raw.filter(l => !!l.email);
-    if (requirePhone) raw = raw.filter(l => !!l.phone);
-    if (requireWebsite) raw = raw.filter(l => !!l.website);
-
-    // 4. Minimum Rating
-    if (minRating > 0) {
-      raw = raw.filter(l => (l.rating || 0) >= minRating);
-    }
-
-    // 5. Sorting
-    let sorted = [...raw];
-    if (sortBy === "name") {
-      sorted.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === "rating") {
-      sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (sortBy === "category") {
-      sorted.sort((a, b) => (a.category || "").localeCompare(b.category || ""));
-    }
-    
-    return sorted;
-  }, [leadsResponse, sortBy, searchQuery, selectedCategories, requireEmail, requirePhone, requireWebsite, minRating]);
+    return data?.pages.flatMap(page => page.data) || [];
+  }, [data]);
 
   const activeFilterCount = 
+    (statusFilter !== "any" ? 1 : 0) +
     (selectedCategories.length > 0 ? 1 : 0) + 
-    (requireEmail ? 1 : 0) + 
-    (requirePhone ? 1 : 0) + 
-    (requireWebsite ? 1 : 0) + 
+    (requireEmail !== "any" ? 1 : 0) + 
+    (requirePhone !== "any" ? 1 : 0) + 
+    (requireWebsite !== "any" ? 1 : 0) + 
     (minRating > 0 ? 1 : 0);
 
   const table = useReactTable({
@@ -308,6 +322,33 @@ export default function LeadsPage() {
     setSelectedCategories(prev => 
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
+  };
+
+  const exportToCSV = () => {
+    if (!leads || leads.length === 0) return;
+    
+    const headers = ["Name", "Category", "Status", "Rating", "Reviews", "Phone", "Email", "Website", "Address"];
+    const rows = leads.map((l: Business) => [
+      `"${(l.name || '').replace(/"/g, '""')}"`,
+      `"${(l.category || '').replace(/"/g, '""')}"`,
+      `"${l.status || ''}"`,
+      l.rating || '',
+      l.reviewsCount || '',
+      `"${(l.phone || '').replace(/"/g, '""')}"`,
+      `"${(l.email || '').replace(/"/g, '""')}"`,
+      `"${(l.website || '').replace(/"/g, '""')}"`,
+      `"${(l.address || '').replace(/"/g, '""')}"`
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -334,6 +375,19 @@ export default function LeadsPage() {
           </div>
 
           <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
+            {/* Export Button */}
+            <button
+              onClick={exportToCSV}
+              disabled={leads.length === 0}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
+                leads.length === 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-gray-600 hover:text-accent-primary hover:bg-gray-50'
+              }`}
+              title="Export filtered leads to CSV"
+            >
+              <Download size={16} />
+              Export
+            </button>
+
             {/* Filter Button */}
             <button
               onClick={() => setIsFilterModalOpen(true)}
@@ -351,19 +405,7 @@ export default function LeadsPage() {
             </button>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 px-3 border-r border-gray-100">
-              <ArrowDownWideNarrow size={16} className="text-gray-400" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 cursor-pointer outline-none"
-              >
-                <option value="recent">Sort by Recent</option>
-                <option value="rating">Sort by Rating</option>
-                <option value="name">Sort by Name</option>
-                <option value="category">Sort by Category</option>
-              </select>
-            </div>
+            <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
 
             {/* View Toggles */}
             <div className="flex items-center gap-1 pl-1">
@@ -420,9 +462,9 @@ export default function LeadsPage() {
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategories([]);
-                setRequireEmail(false);
-                setRequirePhone(false);
-                setRequireWebsite(false);
+                setRequireEmail("any");
+                setRequirePhone("any");
+                setRequireWebsite("any");
                 setMinRating(0);
               }}
               className="mt-2 text-accent-primary font-bold hover:underline"
@@ -438,32 +480,27 @@ export default function LeadsPage() {
               {leads.map((lead: Business) => (
                 <div 
                   key={lead.id} 
-                  className="bg-white border border-gray-200 rounded-3xl p-6 flex flex-col justify-between gap-6 transition-all hover:shadow-2xl shadow-lg group relative overflow-hidden transform hover:-translate-y-1 duration-300"
+                  className="bg-white border border-gray-200 rounded-3xl p-6 flex flex-col justify-between gap-6 transition-all hover:shadow-2xl shadow-lg group relative duration-300"
                 >
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent-primary to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-primary to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-3xl"></div>
                   
                   <div className="flex flex-col gap-4">
                     <div className="flex justify-between items-start gap-4">
                       <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">
                         {lead.name}
                       </h3>
-                      <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-sm ${
-                        lead.status === 'NEW' ? 'bg-success/20 text-success' :
-                        lead.status === 'CONTACTED' ? 'bg-accent-glow text-accent-primary' :
-                        'bg-gray-100 text-gray-500'
-                      }`}>
-                        {lead.status}
-                      </span>
+                      <BookmarkButton leadId={lead.id} />
                     </div>
 
                     <div className="flex items-center justify-between">
-                      {lead.category ? (
-                        <span className="text-[10px] font-bold text-accent-primary uppercase tracking-widest bg-accent-glow px-2.5 py-1 rounded-lg w-fit">
-                          {lead.category}
-                        </span>
-                      ) : (
-                        <span></span>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {lead.category && (
+                          <span className="text-[10px] font-bold text-accent-primary uppercase tracking-widest bg-accent-glow px-2.5 py-1 rounded-lg w-fit">
+                            {lead.category}
+                          </span>
+                        )}
+                        <StatusDropdown leadId={lead.id} currentStatus={lead.status} />
+                      </div>
                       
                       {lead.rating && (
                         <div className="flex items-center gap-1.5 bg-warning/10 px-2 py-0.5 rounded-full">
@@ -518,6 +555,15 @@ export default function LeadsPage() {
               </div>
             </div>
           )}
+
+          {/* Infinite Scroll Sentinel */}
+          {hasNextPage && (
+            <div ref={targetRef} className="w-full h-20 flex items-center justify-center mt-8">
+              {isFetchingNextPage ? (
+                <div className="w-8 h-8 border-4 border-accent-primary border-t-transparent rounded-full animate-spin"></div>
+              ) : null}
+            </div>
+          )}
         </>
       )}
 
@@ -542,33 +588,56 @@ export default function LeadsPage() {
             
             <div className="p-6 flex flex-col gap-8 max-h-[60vh] overflow-y-auto">
               
+              {/* Status Filter */}
+              <div className="flex flex-col gap-3">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Status</h3>
+                <div className="flex flex-wrap gap-2">
+                  {["any", "NEW", "CONTACTED", "INTERESTED", "NOT_INTERESTED", "CLOSED"].map(status => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                        statusFilter === status 
+                          ? 'bg-accent-primary text-white border-accent-primary shadow-sm' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {status === "any" ? "Any Status" : status.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Contact Requirements */}
               <div className="flex flex-col gap-3">
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Contact Details Required</h3>
                 <div className="flex flex-col gap-2">
-                  <label className="flex items-center justify-between cursor-pointer group p-3 rounded-2xl border border-gray-200 hover:border-accent-primary/30 transition-all bg-white shadow-sm">
-                    <span className="text-sm font-bold text-gray-700 select-none">Must have Phone Number</span>
-                    <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${requirePhone ? 'bg-accent-primary' : 'bg-gray-200 group-hover:bg-gray-300'}`}>
-                      <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${requirePhone ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className="flex flex-col gap-1.5 p-3 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <span className="text-sm font-bold text-gray-700 select-none">Phone Number</span>
+                    <div className="flex items-center p-1 bg-gray-100 rounded-xl">
+                      <button onClick={() => setRequirePhone("any")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requirePhone === "any" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Any</button>
+                      <button onClick={() => setRequirePhone("yes")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requirePhone === "yes" ? "bg-accent-primary text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must Have</button>
+                      <button onClick={() => setRequirePhone("no")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requirePhone === "no" ? "bg-error text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must NOT Have</button>
                     </div>
-                    <input type="checkbox" className="hidden" checked={requirePhone} onChange={() => setRequirePhone(!requirePhone)} />
-                  </label>
+                  </div>
 
-                  <label className="flex items-center justify-between cursor-pointer group p-3 rounded-2xl border border-gray-200 hover:border-accent-primary/30 transition-all bg-white shadow-sm">
-                    <span className="text-sm font-bold text-gray-700 select-none">Must have Email Address</span>
-                    <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${requireEmail ? 'bg-accent-primary' : 'bg-gray-200 group-hover:bg-gray-300'}`}>
-                      <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${requireEmail ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className="flex flex-col gap-1.5 p-3 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <span className="text-sm font-bold text-gray-700 select-none">Email Address</span>
+                    <div className="flex items-center p-1 bg-gray-100 rounded-xl">
+                      <button onClick={() => setRequireEmail("any")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireEmail === "any" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Any</button>
+                      <button onClick={() => setRequireEmail("yes")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireEmail === "yes" ? "bg-accent-primary text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must Have</button>
+                      <button onClick={() => setRequireEmail("no")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireEmail === "no" ? "bg-error text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must NOT Have</button>
                     </div>
-                    <input type="checkbox" className="hidden" checked={requireEmail} onChange={() => setRequireEmail(!requireEmail)} />
-                  </label>
+                  </div>
 
-                  <label className="flex items-center justify-between cursor-pointer group p-3 rounded-2xl border border-gray-200 hover:border-accent-primary/30 transition-all bg-white shadow-sm">
-                    <span className="text-sm font-bold text-gray-700 select-none">Must have Website</span>
-                    <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${requireWebsite ? 'bg-accent-primary' : 'bg-gray-200 group-hover:bg-gray-300'}`}>
-                      <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${requireWebsite ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className="flex flex-col gap-1.5 p-3 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <span className="text-sm font-bold text-gray-700 select-none">Website</span>
+                    <div className="flex items-center p-1 bg-gray-100 rounded-xl">
+                      <button onClick={() => setRequireWebsite("any")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireWebsite === "any" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Any</button>
+                      <button onClick={() => setRequireWebsite("yes")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireWebsite === "yes" ? "bg-accent-primary text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must Have</button>
+                      <button onClick={() => setRequireWebsite("no")} className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${requireWebsite === "no" ? "bg-error text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Must NOT Have</button>
                     </div>
-                    <input type="checkbox" className="hidden" checked={requireWebsite} onChange={() => setRequireWebsite(!requireWebsite)} />
-                  </label>
+                  </div>
                 </div>
               </div>
 
@@ -634,10 +703,11 @@ export default function LeadsPage() {
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
               <button 
                 onClick={() => {
+                  setStatusFilter("any");
                   setSelectedCategories([]);
-                  setRequireEmail(false);
-                  setRequirePhone(false);
-                  setRequireWebsite(false);
+                  setRequireEmail("any");
+                  setRequirePhone("any");
+                  setRequireWebsite("any");
                   setMinRating(0);
                 }}
                 className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors"
