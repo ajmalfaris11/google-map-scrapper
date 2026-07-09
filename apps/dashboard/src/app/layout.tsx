@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 
 import { FullScreenToggle } from "@/components/FullScreenToggle";
+import { Logo } from "@/components/Logo";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -25,20 +26,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} font-sans antialiased bg-gradient-to-br from-[#0052ff] to-[#002880] text-text-frame h-screen overflow-hidden flex p-4 selection:bg-accent-primary/30`} suppressHydrationWarning>
+      <body className={`${outfit.variable} font-sans antialiased bg-gradient-to-b from-[#0052ff] to-[#002880] text-text-frame h-screen overflow-hidden flex p-4 selection:bg-accent-primary/30`} suppressHydrationWarning>
         <Providers>
           <AuthGuard>
-          <Sidebar />
+            <Sidebar />
 
-          {/* Main Content Area */}
+            {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0 bg-bg-canvas text-text-primary rounded-[2rem] overflow-hidden shadow-2xl ml-2 border border-border-color/50">
               <header className="h-20 border-b border-border-color/30 bg-transparent sticky top-0 z-10 px-8 flex items-center justify-between">
                 <div className="text-sm font-medium text-text-secondary w-1/3">
                   Connected to Engine
                 </div>
                 <div className="flex-1 flex justify-center items-center">
-                  <h1 className="text-2xl font-black tracking-widest text-text-primary uppercase drop-shadow-sm">
-                    X-Scrapper
+                  <h1 className="text-3xl font-semibold tracking-wide text-text-primary flex items-center drop-shadow-sm">
+                    <Logo size={42} className="mr-2" />
+                    <span className="bg-clip-text">
+                      SCRAPPER
+                    </span>
                   </h1>
                 </div>
                 <div className="flex items-center justify-end gap-4 w-1/3">
