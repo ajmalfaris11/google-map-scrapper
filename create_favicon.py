@@ -14,8 +14,8 @@ def create_optimized_icons(src_path, dest_ico_path, dest_png_path):
     # Base size for the largest PNG icon
     final_size = 512
     
-    # Maximize size: the largest dimension should be 90% of the circle diameter
-    target_dim = final_size * 0.90
+    # Maximize size safely: the largest dimension should be 65% of the circle diameter to prevent clipping on diagonals
+    target_dim = final_size * 0.65
     scale = target_dim / max(w, h)
     
     new_w = int(w * scale)
