@@ -1,6 +1,7 @@
 "use client";
 
-import { Zap, LayoutDashboard, Search, Users, LogOut, Bookmark } from "lucide-react";
+import { LayoutDashboard, Search, Users, LogOut, Bookmark } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -47,8 +48,8 @@ export function Sidebar() {
   return (
     <aside className="w-24 flex flex-col shrink-0 sticky top-0 h-full z-10 items-center py-6 gap-8 border-none bg-transparent text-text-frame">
       <div className="w-full flex justify-center">
-        <div className="w-10 h-10 rounded-full bg-text-frame text-bg-frame flex items-center justify-center font-bold text-xl shadow-md">
-          <Zap size={20} />
+        <div className="w-16 h-16 rounded-full bg-text-frame text-bg-frame flex items-center justify-center shadow-lg overflow-hidden">
+          <Logo size={56} />
         </div>
       </div>
 
@@ -112,7 +113,7 @@ export function Sidebar() {
         <div className="relative w-full flex justify-center mt-auto" ref={menuRef}>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="w-10 h-10 rounded-full bg-white text-bg-frame flex items-center justify-center font-bold text-sm shadow-lg uppercase transition-all hover:opacity-90 focus:outline-none"
+            className="w-16 h-16 rounded-full bg-white text-bg-frame flex items-center justify-center font-bold text-xl shadow-lg uppercase transition-all hover:opacity-90 focus:outline-none"
           >
             {user.email.substring(0, 2)}
           </button>
