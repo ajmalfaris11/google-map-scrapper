@@ -1,6 +1,6 @@
 "use client";
 
-import { Zap, LayoutDashboard, Search, Users, LogOut } from "lucide-react";
+import { Zap, LayoutDashboard, Search, Users, LogOut, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -58,7 +58,7 @@ export function Sidebar() {
             href="/"
             className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/'
               ? 'bg-accent-primary text-white shadow-lg scale-110'
-              : 'text-accent-primary hover:bg-accent-primary/10'
+              : 'text-accent-primary hover:bg-blue-50'
               }`}
           >
             <LayoutDashboard size={22} />
@@ -71,7 +71,7 @@ export function Sidebar() {
             href="/jobs/new"
             className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/jobs/new'
               ? 'bg-accent-primary text-white shadow-lg scale-110'
-              : 'text-accent-primary hover:bg-accent-primary/10'
+              : 'text-accent-primary hover:bg-blue-50'
               }`}
           >
             <Search size={22} />
@@ -84,12 +84,25 @@ export function Sidebar() {
             href="/leads"
             className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/leads'
               ? 'bg-accent-primary text-white shadow-lg scale-110'
-              : 'text-accent-primary hover:bg-accent-primary/10'
+              : 'text-accent-primary hover:bg-blue-50'
               }`}
           >
             <Users size={22} />
             <span className="absolute left-20 bg-bg-canvas text-text-blue-500 border-blue-500 px-6 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
               Leads
+            </span>
+          </Link>
+
+          <Link
+            href="/bookmarks"
+            className={`group relative flex items-center justify-center w-12 h-20 rounded-full transition-all ${pathname === '/bookmarks'
+              ? 'bg-accent-primary text-white shadow-lg scale-110'
+              : 'text-accent-primary hover:bg-blue-50'
+              }`}
+          >
+            <Bookmark size={22} />
+            <span className="absolute left-20 bg-bg-canvas text-text-blue-500 border-blue-500 px-6 py-2.5 rounded-full text-xs font-semibold shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity border border-border-color/20">
+              Bookmarks
             </span>
           </Link>
         </nav>
