@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { Logo } from "@/components/Logo";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -44,8 +45,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-bg-primary absolute inset-0 z-50">
       <div className="bg-bg-secondary border border-border-color rounded-2xl p-8 flex flex-col gap-6 shadow-sm w-full max-w-md">
         <div className="text-center flex flex-col gap-2">
-          <div className="text-2xl font-bold flex items-center justify-center gap-2">
-            <span className="text-accent-primary">⚡</span> Lead Platform
+          <div className="flex items-center justify-center">
+            <h1 className="text-4xl font-bold tracking-wide text-text-primary flex items-center drop-shadow-sm">
+              <Logo size={50} className="mr-3" />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-secondary">
+                SCRAPPER
+              </span>
+            </h1>
           </div>
           <p className="text-text-secondary text-sm">Sign in to manage lead extraction</p>
         </div>
