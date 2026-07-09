@@ -1,4 +1,4 @@
-import prisma from '@lead-platform/database';
+import prisma from '../../repositories/PrismaClient';
 import { Queue } from '@lead-platform/queue';
 import { ExtractionJob, ExtractionJobStatus } from '@lead-platform/types';
 import { BusinessExtractionEngine } from '../../providers/google-maps/extractors/BusinessExtractionEngine';
