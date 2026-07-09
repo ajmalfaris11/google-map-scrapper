@@ -39,7 +39,7 @@ export default function RootLayout({
                 </div>
                 <div className="flex-1 flex justify-center items-center">
                   <h1 className="text-3xl font-semibold tracking-wide text-text-primary flex items-center drop-shadow-sm">
-                    <Logo size={42} className="mr-2" />
+                    <Logo size={50} className="" />
                     <span className="bg-clip-text">
                       SCRAPPER
                     </span>
