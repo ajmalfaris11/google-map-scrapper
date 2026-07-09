@@ -8,6 +8,8 @@ export function FullScreenToggle() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
+    setIsFullscreen(!!document.fullscreenElement);
+    
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
