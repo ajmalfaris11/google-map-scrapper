@@ -480,10 +480,8 @@ export default function LeadsPage() {
               {leads.map((lead: Business) => (
                 <div 
                   key={lead.id} 
-                  className="bg-white border border-gray-200 rounded-3xl p-6 flex flex-col justify-between gap-6 transition-all hover:shadow-2xl shadow-lg group relative duration-300"
+                  className="bg-white border border-gray-200 rounded-3xl p-6 flex flex-col justify-between gap-6 transition-all hover:shadow-2xl shadow-lg group relative duration-300 before:absolute before:inset-[-1px] before:rounded-3xl before:border-t-[4px] before:border-t-accent-primary before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none"
                 >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent-primary to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-3xl"></div>
-                  
                   <div className="flex flex-col gap-4">
                     <div className="flex justify-between items-start gap-4">
                       <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">
