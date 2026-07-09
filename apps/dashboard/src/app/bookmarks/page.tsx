@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import { SortDropdown } from "@/components/SortDropdown";
 import { StatusDropdown } from "@/components/StatusDropdown";
+import { ExportModal } from "@/components/ExportModal";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useDebounce } from "@/hooks/useDebounce";
 import { api } from "@/lib/api";
@@ -230,6 +231,19 @@ export default function BookmarksPage() {
   // UI State
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  
+  const EXPORT_COLUMNS = [
+    { id: "name", label: "Name" },
+    { id: "category", label: "Category" },
+    { id: "status", label: "Status" },
+    { id: "rating", label: "Rating" },
+    { id: "reviewsCount", label: "Reviews" },
+    { id: "phone", label: "Phone" },
+    { id: "email", label: "Email" },
+    { id: "website", label: "Website" },
+    { id: "address", label: "Address" },
+  ];
   
   // Filter State
   const [sortBy, setSortBy] = useState<string>("recent");
@@ -332,21 +346,24 @@ export default function BookmarksPage() {
     );
   };
 
-  const exportToCSV = () => {
+  const exportToCSV = (selectedCols: string[]) => {
     if (!leads || leads.length === 0) return;
     
-    const headers = ["Name", "Category", "Status", "Rating", "Reviews", "Phone", "Email", "Website", "Address"];
-    const rows = leads.map((l: Business) => [
-      `"${(l.name || '').replace(/"/g, '""')}"`,
-      `"${(l.category || '').replace(/"/g, '""')}"`,
-      `"${l.status || ''}"`,
-      l.rating || '',
-      l.reviewsCount || '',
-      `"${(l.phone || '').replace(/"/g, '""')}"`,
-      `"${(l.email || '').replace(/"/g, '""')}"`,
-      `"${(l.website || '').replace(/"/g, '""')}"`,
-      `"${(l.address || '').replace(/"/g, '""')}"`
-    ]);
+    const headers = selectedCols.map(col => EXPORT_COLUMNS.find(c => c.id === col)?.label || col);
+    const rows = leads.map((l: Business) => {
+      return selectedCols.map(col => {
+        if (col === "name") return `"${(l.name || '').replace(/"/g, '""')}"`;
+        if (col === "category") return `"${(l.category || '').replace(/"/g, '""')}"`;
+        if (col === "status") return `"${l.status || ''}"`;
+        if (col === "rating") return l.rating || '';
+        if (col === "reviewsCount") return l.reviewsCount || '';
+        if (col === "phone") return `"${(l.phone || '').replace(/"/g, '""')}"`;
+        if (col === "email") return `"${(l.email || '').replace(/"/g, '""')}"`;
+        if (col === "website") return `"${(l.website || '').replace(/"/g, '""')}"`;
+        if (col === "address") return `"${(l.address || '').replace(/"/g, '""')}"`;
+        return '';
+      });
+    });
     
     const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -385,7 +402,7 @@ export default function BookmarksPage() {
           <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
             {/* Export Button */}
             <button
-              onClick={exportToCSV}
+              onClick={() => setIsExportModalOpen(true)}
               disabled={leads.length === 0}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
                 leads.length === 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-gray-600 hover:text-accent-primary hover:bg-gray-50'
@@ -732,6 +749,13 @@ export default function BookmarksPage() {
           </div>
         </div>
       )}
+
+      <ExportModal 
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={exportToCSV}
+        availableColumns={EXPORT_COLUMNS}
+      />
     </div>
   );
 }
