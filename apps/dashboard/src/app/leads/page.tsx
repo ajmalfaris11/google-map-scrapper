@@ -371,7 +371,7 @@ export default function LeadsPage() {
   return (
     <div className="flex flex-col gap-8 max-w-[1400px] mx-auto h-full relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col gap-1 shrink-0">
+        <div className="hidden md:flex flex-col gap-1 shrink-0">
           <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-accent-primary to-cyan-400">
             Leads Pipeline
           </h1>
@@ -391,12 +391,12 @@ export default function LeadsPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm max-w-full overflow-x-auto hide-scrollbar">
             {/* Export Button */}
             <button
               onClick={() => setIsExportModalOpen(true)}
               disabled={leads.length === 0}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
+              className={`shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
                 leads.length === 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-gray-600 hover:text-accent-primary hover:bg-gray-50'
               }`}
               title="Export filtered leads to CSV"
@@ -408,7 +408,7 @@ export default function LeadsPage() {
             {/* Filter Button */}
             <button
               onClick={() => setIsFilterModalOpen(true)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
+              className={`shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all text-sm font-bold border-r border-gray-100 ${
                 activeFilterCount > 0 ? 'text-accent-primary' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -422,10 +422,12 @@ export default function LeadsPage() {
             </button>
 
             {/* Sort Dropdown */}
-            <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+            <div className="shrink-0">
+              <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+            </div>
 
             {/* View Toggles */}
-            <div className="flex items-center gap-1 pl-1">
+            <div className="shrink-0 flex items-center gap-1 pl-1">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-lg transition-all ${
