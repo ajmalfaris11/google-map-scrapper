@@ -7,11 +7,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Internal lead extraction engine',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#121212',
+    background_color: '#ffffffff',
+    theme_color: '#0052ff',
     icons: [
       {
-        src: '/logo.png',
+        src: '/icon.png',
         sizes: '512x512',
         type: 'image/png',
       },
