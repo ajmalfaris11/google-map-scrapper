@@ -29,18 +29,18 @@ export default function DashboardStats() {
           </span>
         </div>
         
-        <div className="relative z-10 mt-16 flex items-end justify-between">
+        <div className="relative z-10 mt-8 md:mt-16 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-0">
           <div className="flex gap-4">
-            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-w-24">
+            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-w-24 flex-1 md:flex-none">
               <span className="text-xs opacity-80 mb-1 flex items-center gap-1.5"><Star size={12} fill="currentColor" /> Rating</span>
               <span className="font-bold text-xl">93</span>
             </div>
-            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-w-24">
+            <div className="bg-white/20 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center min-w-24 flex-1 md:flex-none">
               <span className="text-xs opacity-80 mb-1 flex items-center gap-1.5"><TrendingUp size={12} /> Trend</span>
               <span className="font-bold text-xl">↑{data?.totalLeadsTrend || 0}%</span>
             </div>
           </div>
-          <button className="bg-bg-frame text-text-frame px-6 py-3.5 rounded-full font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center gap-1 shadow-lg">
+          <button className="bg-bg-frame text-text-frame px-6 py-3.5 rounded-full font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-lg w-full md:w-auto">
             VIEW FULL STATISTIC 
             <ChevronRight size={18} />
           </button>
