@@ -91,7 +91,7 @@ export function Sidebar() {
           >
             <div className={`w-full h-full rounded-full border-2 border-dashed flex items-center justify-center font-bold text-sm md:text-xl uppercase transition-colors ${pathname === '/profile' ? 'border-white text-white' : 'border-accent-primary text-accent-primary'
               }`}>
-              {user.email.substring(0, 2)}
+              {user?.email?.substring(0, 2)?.toUpperCase() || 'U'}
             </div>
           </Link>
         </div>

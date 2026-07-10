@@ -6,16 +6,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   app.use(cookieParser());
-  const allowedOrigins = [
-    process.env.DASHBOARD_URL || 'http://localhost:3000',
-    'http://localhost',
-    'capacitor://localhost'
-  ];
   app.enableCors({
-    origin: allowedOrigins,
+    origin: process.env.DASHBOARD_URL || 'http://localhost:3000',
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
+  await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

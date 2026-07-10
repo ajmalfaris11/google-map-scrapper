@@ -31,8 +31,6 @@ jobs:
 
       - name: Build Next.js Dashboard
         run: pnpm --filter dashboard run build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
       - name: Sync Capacitor
         working-directory: ./apps/dashboard
