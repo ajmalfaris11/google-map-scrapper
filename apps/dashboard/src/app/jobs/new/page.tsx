@@ -13,7 +13,7 @@ import {
   Wrench, Home, Monitor, Utensils, Stethoscope, Briefcase,
   ChevronDown, Zap, Building2, GraduationCap,
   Dumbbell, Scissors, Car, Pill, Megaphone, BedDouble,
-  Landmark, ShoppingCart, Search, MapPin, Gauge
+  Landmark, ShoppingCart, Search, MapPin, Gauge, Sparkles
 } from "lucide-react";
 
 const BUSINESS_CATEGORIES = [
@@ -49,6 +49,36 @@ const jobSchema = z.object({
   location: z.string().min(1, "Location is required for targeted scraping"),
   maxResults: z.number().min(10).max(1000, "Maximum limit is 1000 leads"),
 });
+
+const AISearchIcon = ({ className, size = 32 }: { className?: string; size?: number }) => (
+  <svg width={size} height={size} viewBox="2 -2 38 44" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    {/* Broken Glass Circle */}
+    <path 
+      d="M 26.74 17.65 A 12 12 0 1 1 18.49 11.26" 
+      stroke="currentColor" 
+      strokeWidth="4" 
+      strokeLinecap="round" 
+    />
+    {/* Long Handle */}
+    <path 
+      d="M 24.48 31.48 L 33 40" 
+      stroke="currentColor" 
+      strokeWidth="4" 
+      strokeLinecap="round" 
+    />
+    {/* Large Sparkle */}
+    <path 
+      d="M 29 3 Q 29 12 38 12 Q 29 12 29 21 Q 29 12 20 12 Q 29 12 29 3 Z" 
+      fill="#FDE047" 
+      className="animate-pulse"
+    />
+    {/* Small Sparkle */}
+    <path 
+      d="M 19 0 Q 19 6 25 6 Q 19 6 19 12 Q 19 6 13 6 Q 19 6 19 0 Z" 
+      fill="currentColor" 
+    />
+  </svg>
+);
 
 type JobForm = z.infer<typeof jobSchema>;
 
@@ -201,7 +231,7 @@ export default function NewJobPage() {
           <button
             type="submit"
             disabled={createJobMutation.isPending}
-            className="md:w-auto w-full bg-accent-primary hover:bg-accent-hover hover:scale-105 active:scale-95 text-white font-bold px-8 h-14 rounded-full transition-all shadow-md hover:shadow-lg hover:shadow-accent-primary/30 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="md:w-auto w-full bg-accent-primary hover:bg-accent-hover text-white font-bold px-8 h-14 rounded-full transition-all shadow-md hover:shadow-lg hover:shadow-accent-primary/30 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createJobMutation.isPending ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -209,7 +239,7 @@ export default function NewJobPage() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : (
-              <Zap size={20} fill="currentColor" className="stroke-white" />
+              <AISearchIcon size={32} className="text-white" />
             )}
             <span className="hidden md:inline">Search</span>
           </button>
