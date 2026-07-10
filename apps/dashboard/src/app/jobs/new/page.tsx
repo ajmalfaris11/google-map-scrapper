@@ -154,7 +154,7 @@ export default function NewJobPage() {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto flex flex-col h-[calc(100vh-180px)] overflow-hidden gap-4">
+    <div className="max-w-[1400px] mx-auto flex flex-col h-auto md:h-[calc(100vh-180px)] overflow-visible md:overflow-hidden gap-4">
       <form onSubmit={handleSubmit((data) => createJobMutation.mutate(data))} className="flex flex-col gap-4 h-full">
 
         {/* The Hero Search Box (Top) - Pill Shaped, Shorter, White BG Inputs */}
