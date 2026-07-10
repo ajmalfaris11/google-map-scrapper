@@ -8,6 +8,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 
 import { FullScreenToggle } from "@/components/FullScreenToggle";
 import { Logo } from "@/components/Logo";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const outfit = Outfit({
   subsets: ["latin"],
