@@ -36,6 +36,7 @@ const BUSINESS_CATEGORIES = [
 ];
 
 const PRESET_LIMITS = [
+  { value: 25, label: "25 Leads", sub: "Micro Test", estTime: "~30 sec" },
   { value: 50, label: "50 Leads", sub: "Quick Test", estTime: "~1 min" },
   { value: 100, label: "100 Leads", sub: "Standard", estTime: "~2 mins" },
   { value: 250, label: "250 Leads", sub: "Popular", estTime: "~4 mins" },
@@ -281,43 +282,48 @@ export default function NewJobPage() {
                 {/* Custom Quota Option */}
                 <div
                   onClick={() => setIsCustomQuota(true)}
-                  className={`flex flex-col items-center justify-center h-full min-h-[70px] rounded-3xl border-2 transition-all p-3 cursor-pointer ${isCustomQuota
-                    ? "border-accent-primary bg-accent-primary/5 shadow-md scale-[1.02]"
+                  className={`col-span-2 lg:col-span-3 flex flex-col justify-center h-full min-h-[70px] rounded-3xl border-2 transition-all p-4 cursor-pointer ${isCustomQuota
+                    ? "border-accent-primary bg-accent-primary/5 shadow-md"
                     : "border-gray-100 bg-white hover:border-accent-primary/30 hover:bg-gray-50 hover:shadow-sm"
                     }`}
                 >
-                  {isCustomQuota ? (
-                    <div className="flex flex-col items-center w-full gap-1.5 animate-in fade-in duration-200">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-accent-primary">Custom</span>
+                  <div className="w-full flex flex-col">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className={`text-[11px] font-bold uppercase tracking-widest ${isCustomQuota ? "text-accent-primary" : "text-gray-400"}`}>
+                        Custom Range
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-semibold ${isCustomQuota ? "text-accent-primary/70" : "text-gray-400/70"}`}>
+                          ⏱ Variable
+                        </span>
+                        <span className={`text-lg font-black ${isCustomQuota ? "text-accent-primary" : "text-gray-500"}`}>
+                          {maxResultsValue} Leads
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs font-bold text-gray-400">10</span>
                       <input
-                        type="number"
+                        type="range"
                         min={10}
                         max={1000}
-                        autoFocus
-                        {...register("maxResults", { valueAsNumber: true })}
-                        onInput={(e) => {
-                          const val = parseInt(e.currentTarget.value);
-                          if (val > 1000) {
-                            e.currentTarget.value = "1000";
-                            setValue("maxResults", 1000, { shouldValidate: true });
-                          }
+                        step={10}
+                        value={maxResultsValue}
+                        onChange={(e) => {
+                          setIsCustomQuota(true);
+                          setValue("maxResults", parseInt(e.target.value), { shouldValidate: true });
                         }}
-                        className="w-full bg-white border border-accent-primary/30 rounded-xl px-2 py-1.5 text-center text-base lg:text-lg font-black text-accent-primary focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 shadow-inner"
+                        className={`flex-1 h-2 rounded-lg appearance-none cursor-pointer transition-all ${
+                          isCustomQuota ? "bg-accent-primary/30 accent-accent-primary" : "bg-gray-200"
+                        }`}
+                        style={{
+                          accentColor: isCustomQuota ? 'var(--accent-primary)' : '#9ca3af'
+                        }}
                       />
+                      <span className="text-xs font-bold text-gray-400">1000</span>
                     </div>
-                  ) : (
-                    <>
-                      <span className="text-lg lg:text-xl font-black text-gray-800">
-                        Custom
-                      </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest mt-1 text-gray-400">
-                        Any Amount
-                      </span>
-                      <span className="text-[9px] font-semibold mt-0.5 text-gray-400/70">
-                        ⏱ Variable
-                      </span>
-                    </>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
