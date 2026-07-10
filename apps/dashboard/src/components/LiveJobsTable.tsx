@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 interface JobLog {
@@ -19,11 +19,67 @@ interface Job {
   logs?: JobLog[];
 }
 
+const LiveJobLeads = ({ jobId, isRunning }: { jobId: string, isRunning: boolean }) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['live-job-leads', jobId],
+    queryFn: async () => {
+      const res = await api.get('/businesses', {
+        params: { jobId, limit: 5, sortBy: 'recent' }
+      });
+      return res.data;
+    },
+    refetchInterval: isRunning ? 2000 : false,
+  });
+
+  if (isLoading) {
+    return <div className="p-6 text-center text-text-muted text-xs animate-pulse">Fetching live data...</div>;
+  }
+
+  const leads = data?.data || [];
+
+  if (leads.length === 0) {
+    return <div className="p-6 text-center text-text-muted text-xs italic">No leads extracted yet for this job...</div>;
+  }
+
+  return (
+    <div className="bg-bg-tertiary/20 p-4 border-t border-border-color/20">
+      <div className="flex items-center gap-2 mb-3 px-2">
+        <span className="relative flex h-2 w-2">
+          {isRunning && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>}
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${isRunning ? 'bg-success' : 'bg-text-muted'}`}></span>
+        </span>
+        <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider">Latest Extracted Leads</h4>
+      </div>
+      <div className="flex flex-col gap-2">
+        {leads.map((lead: any) => (
+          <div key={lead.id} className="flex items-center justify-between bg-bg-canvas rounded-xl p-3 border border-border-color/30 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+             <div className="flex flex-col gap-0.5">
+               <span className="text-sm font-bold text-text-primary">{lead.name}</span>
+               {lead.address && <span className="text-[11px] font-medium text-text-muted truncate max-w-[400px]">{lead.address}</span>}
+             </div>
+             <div className="flex items-center gap-3 text-xs">
+               {lead.category && <span className="text-[10px] font-bold text-accent-primary uppercase tracking-widest bg-accent-glow px-2 py-0.5 rounded-md">{lead.category}</span>}
+               {lead.phone && <span className="text-warning font-semibold bg-warning/10 px-2 py-1 rounded-md">📞 {lead.phone}</span>}
+               {lead.website && <span className="text-success font-semibold bg-success/10 px-2 py-1 rounded-md">🌐 Found</span>}
+             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 export default function LiveJobsTable() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const processedCompletedJobs = useRef(new Set<string>());
+
+  const toggleExpand = (jobId: string) => {
+    setExpandedJobId(prev => prev === jobId ? null : jobId);
+  };
 
   const handleAction = async (jobId: string, action: 'pause' | 'resume' | 'cancel') => {
     try {
@@ -112,7 +168,11 @@ export default function LiveJobsTable() {
           </thead>
           <tbody className="bg-bg-canvas divide-y divide-border-color/30">
             {jobs.map((job) => (
-              <tr key={job.id} className="hover:bg-bg-secondary/30 transition-colors group">
+              <React.Fragment key={job.id}>
+              <tr 
+                onClick={() => toggleExpand(job.id)} 
+                className={`hover:bg-bg-secondary/50 transition-colors group cursor-pointer ${expandedJobId === job.id ? 'bg-bg-secondary/30' : ''}`}
+              >
                 <td className="px-8 py-6 whitespace-nowrap text-text-primary font-semibold text-sm">
                   <div className="max-w-[120px] truncate opacity-90" title={job.id}>{job.id}</div>
                 </td>
@@ -187,6 +247,14 @@ export default function LiveJobsTable() {
                   </div>
                 </td>
               </tr>
+              {expandedJobId === job.id && (
+                <tr className="bg-bg-secondary/5 border-b border-border-color/30">
+                  <td colSpan={5} className="p-0">
+                    <LiveJobLeads jobId={job.id} isRunning={job.status === 'RUNNING'} />
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
