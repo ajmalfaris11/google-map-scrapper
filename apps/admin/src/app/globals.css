@@ -46,7 +46,7 @@ body {
   height: 24px;
   background-color: transparent;
   border-bottom-right-radius: 24px;
-  box-shadow: 0 24px 0 24px #ffffff;
+  box-shadow: 12px 12px 0 12px #ffffff;
   pointer-events: none;
 }
 
@@ -59,7 +59,16 @@ body {
   height: 24px;
   background-color: transparent;
   border-top-right-radius: 24px;
-  box-shadow: 0 -24px 0 24px #ffffff;
+  box-shadow: 12px -12px 0 12px #ffffff;
   pointer-events: none;
+}
+
+/* Hide scrollbar for elements globally */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
