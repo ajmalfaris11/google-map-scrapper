@@ -16,13 +16,13 @@ export class AuthController {
     const { access_token } = await this.authService.login(user);
     
     res.cookie('jwt', access_token, {
-      httpOnly: true,
+      httpOnly: false, // Changed to false so frontend can read it for the Authorization header
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     });
 
-    return { message: 'Logged in successfully', user };
+    return { message: 'Logged in successfully', user, access_token };
   }
 
   @Post('logout')
