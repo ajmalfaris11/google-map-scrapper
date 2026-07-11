@@ -1,4 +1,5 @@
-import { Controller, Get, Put, Param, Body, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, Query, UseGuards, BadRequestException, Post } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -11,11 +12,85 @@ import { Prisma } from '@prisma/client';
 export class UsersController {
   constructor(private db: DatabaseService) {}
 
+  @Post()
+  async createUser(
+    @Body() body: {
+      name?: string;
+      email: string;
+      password?: string;
+      role?: string;
+      businessName?: string;
+      businessType?: string;
+      country?: string;
+      tokenAmount?: number;
+    },
+  ) {
+    const { name, email, password, role, businessName, businessType, country, tokenAmount } = body;
+    
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+
+    if (!password) {
+      throw new BadRequestException('Password is required');
+    }
+
+    const existingUser = await this.db.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const initialTokens = tokenAmount || 0.0;
+
+    return this.db.$transaction(async (prisma) => {
+      const user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          role: role || 'USER',
+          businessName,
+          businessType,
+          country,
+        },
+      });
+
+      const wallet = await prisma.wallet.create({
+        data: {
+          userId: user.id,
+          balance: initialTokens,
+        },
+      });
+
+      if (initialTokens > 0) {
+        await prisma.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            amount: initialTokens,
+            type: 'ADMIN_CREDIT',
+            description: 'Initial tokens granted by admin',
+          },
+        });
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        walletBalance: wallet.balance,
+      };
+    });
+  }
+
   @Get()
   async getAllUsers(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('search') search?: string,
+    @Query('sortBy') sortBy: string = 'createdAt',
+    @Query('order') order: 'asc' | 'desc' = 'desc',
   ) {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -25,7 +100,13 @@ export class UsersController {
     }
 
     const where: Prisma.UserWhereInput = search
-      ? { email: { contains: search, mode: 'insensitive' } }
+      ? { 
+          OR: [
+            { email: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: 'insensitive' } },
+            { businessName: { contains: search, mode: 'insensitive' } }
+          ]
+        }
       : {};
 
     const [users, total] = await Promise.all([
@@ -35,12 +116,20 @@ export class UsersController {
         take: limitNumber,
         select: {
           id: true,
+          name: true,
           email: true,
           role: true,
           isActive: true,
+          businessName: true,
           createdAt: true,
+          wallet: {
+            select: {
+              balance: true,
+              totalSpent: true,
+            }
+          }
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [sortBy]: order },
       }),
       this.db.user.count({ where }),
     ]);
