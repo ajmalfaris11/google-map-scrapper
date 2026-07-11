@@ -63,48 +63,52 @@ export default function AdminBusinessesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative shadow-sm min-h-[400px]">
+      <div className="relative min-h-[400px]">
         {loading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0052ff]"></div>
           </div>
         )}
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Business Name</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Keyword</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Contact</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500 text-right">Links</th>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <table className="w-full text-left border-separate border-spacing-y-3">
+            <thead>
+              <tr className="text-gray-500 text-sm font-semibold">
+                <th className="px-6 pb-2">Business Name</th>
+                <th className="px-6 pb-2">Keyword</th>
+                <th className="px-6 pb-2">Contact</th>
+                <th className="px-6 pb-2 text-right">Links</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {filtered.length > 0 ? (
                 filtered.map((business: any) => (
-                  <tr key={business.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{business.name}</div>
+                  <tr key={business.id} className="group cursor-pointer">
+                    <td className="px-6 py-4.5 bg-white border-y border-l border-gray-100 first:rounded-l-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
+                      <div className="font-semibold text-gray-900">{business.name}</div>
                       {business.address && (
-                        <div className="flex items-center text-xs text-gray-500 mt-1 gap-1">
-                          <MapPin size={12} />
+                        <div className="flex items-center text-xs text-gray-400 mt-1 gap-1 font-normal">
+                          <MapPin size={12} className="text-gray-400" />
                           {business.address}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4.5 bg-white border-y border-gray-100 text-sm font-medium text-gray-600 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
                       {business.keyword}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {business.phone ? business.phone : <span className="text-gray-400 italic">No phone</span>}
+                    <td className="px-6 py-4.5 bg-white border-y border-gray-100 text-sm text-gray-600 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
+                      {business.phone ? (
+                        <span className="font-medium text-gray-700">{business.phone}</span>
+                      ) : (
+                        <span className="text-gray-400 italic">No phone</span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4.5 bg-white border-y border-r border-gray-100 last:rounded-r-2xl text-right shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
                       <div className="flex justify-end gap-3">
                         {business.website && (
-                           <a href={business.website} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-[#0052ff] transition-colors" title="Website">
-                             <ExternalLink size={18} />
-                           </a>
+                          <a href={business.website} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-[#0052ff] p-1.5 hover:bg-[#0052ff]/5 rounded-lg transition-all" title="Website">
+                            <ExternalLink size={18} />
+                          </a>
                         )}
                       </div>
                     </td>
@@ -112,7 +116,7 @@ export default function AdminBusinessesPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl">
                     No businesses match your search.
                   </td>
                 </tr>
