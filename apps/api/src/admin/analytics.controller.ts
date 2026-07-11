@@ -18,12 +18,25 @@ export class AnalyticsController {
     const completedJobs = await this.db.job.count({ where: { status: 'COMPLETED' } });
     const totalBusinesses = await this.db.business.count();
 
+    const recentJobs = await this.db.job.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        keyword: true,
+        provider: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
     return {
       totalUsers,
       activeUsers,
       totalJobs,
       completedJobs,
       totalBusinesses,
+      recentJobs,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -17,13 +17,20 @@ export class SettingsController {
 
   @Put()
   async updateSettings(@Body() body: { settings: { key: string; value: string }[] }) {
-    for (const setting of body.settings) {
+    if (!body.settings || !Array.isArray(body.settings)) {
+      throw new BadRequestException('Invalid settings format');
+    }
+
+    const validSettings = body.settings.filter(s => s.key && s.key.trim() !== '');
+
+    for (const setting of validSettings) {
       await this.db.setting.upsert({
         where: { key: setting.key },
         update: { value: setting.value },
         create: { key: setting.key, value: setting.value },
       });
     }
-    return { success: true };
+    
+    return { success: true, updatedCount: validSettings.length };
   }
 }
