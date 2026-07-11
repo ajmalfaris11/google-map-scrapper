@@ -10,12 +10,42 @@ datasource db {
 
 model User {
   id           String   @id @default(uuid())
+  name         String?
   email        String   @unique
   passwordHash String
-  role         String   @default("ADMIN")
+  role         String   @default("USER") // ADMIN, SUPER_ADMIN, USER
+  businessName String?
+  businessType String?
+  country      String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  wallet       Wallet?
+}
+
+model Wallet {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance     Float    @default(0.0) // Token balance
+  totalSpent  Float    @default(0.0) // Total tokens spent
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount      Float    // Positive for credit, negative for debit
+  type        String   // e.g., "ADMIN_CREDIT", "USAGE_DEBIT"
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([walletId])
 }
 
 model Job {
