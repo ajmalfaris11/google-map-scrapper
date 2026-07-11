@@ -27,8 +27,8 @@ export function Sidebar() {
     } catch (e) {
       console.error(e);
     }
-    document.cookie = 'jwt=; Max-Age=0; path=/';
-    router.push('/login');
+    document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
+    window.location.href = '/login';
   };
 
   return (
