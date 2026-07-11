@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ShieldAlert, CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, UserCog, UserPlus, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { ShieldAlert, CheckCircle, XCircle, Search, ChevronLeft, ChevronRight, UserCog, UserPlus, ArrowUpDown, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRef } from 'react';
 import ReactCountryFlag from "react-country-flag";
@@ -98,6 +98,8 @@ export default function UsersPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -148,13 +150,12 @@ export default function UsersPage() {
     setPage(1);
   };
 
-  const toggleRole = async (id: string, currentRole: string) => {
-    // Basic toggle between roles
-    let newRole = 'USER';
-    if (currentRole === 'USER') newRole = 'ADMIN';
-    else if (currentRole === 'ADMIN') newRole = 'SUPER_ADMIN';
-    else newRole = 'USER';
+  const renderSortIcon = (field: string) => {
+    if (sortBy !== field) return <ArrowUpDown size={14} className="opacity-30" />;
+    return order === 'asc' ? <ArrowUp size={14} className="text-[#0052ff]" /> : <ArrowDown size={14} className="text-[#0052ff]" />;
+  };
 
+  const changeRole = async (id: string, newRole: string) => {
     const token = getCookie('jwt');
     await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/admin/users/${id}`, {
       method: 'PUT',
@@ -212,7 +213,8 @@ export default function UsersPage() {
       });
       fetchUsers(1);
     } else {
-      alert('Failed to create user. Check if email already exists.');
+      const errData = await res.json().catch(() => ({}));
+      alert(`Failed to create user: ${errData.message || res.statusText || 'Unknown error'}`);
     }
   };
 
@@ -252,33 +254,39 @@ export default function UsersPage() {
           </div>
         )}
         
-        <div className="overflow-x-auto -mx-4 px-4">
-          <table className="w-full text-left border-separate border-spacing-y-3">
+        <div className="overflow-x-auto w-full pb-4">
+          <table className="w-full min-w-max text-left border-separate border-spacing-y-3">
             <thead>
               <tr className="text-gray-500 text-sm font-semibold">
-                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors" onClick={() => handleSort('name')}>
-                  <div className="flex items-center gap-1">User <ArrowUpDown size={14} /></div>
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors sticky left-0 bg-white z-20 min-w-[250px]" onClick={() => handleSort('name')}>
+                  <div className="flex items-center gap-1">User {renderSortIcon('name')}</div>
                 </th>
-                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors" onClick={() => handleSort('role')}>
-                  <div className="flex items-center gap-1">Role <ArrowUpDown size={14} /></div>
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors whitespace-nowrap" onClick={() => handleSort('role')}>
+                  <div className="flex items-center gap-1">Role {renderSortIcon('role')}</div>
                 </th>
-                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors" onClick={() => handleSort('wallet')}>
-                  Wallet Balance
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors whitespace-nowrap" onClick={() => handleSort('wallet')}>
+                  <div className="flex items-center gap-1">Tokens {renderSortIcon('wallet')}</div>
                 </th>
-                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors" onClick={() => handleSort('isActive')}>
-                  <div className="flex items-center gap-1">Status <ArrowUpDown size={14} /></div>
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors whitespace-nowrap" onClick={() => handleSort('totalSpent')}>
+                  <div className="flex items-center gap-1">Spent {renderSortIcon('totalSpent')}</div>
                 </th>
-                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors" onClick={() => handleSort('createdAt')}>
-                  <div className="flex items-center gap-1">Joined <ArrowUpDown size={14} /></div>
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors whitespace-nowrap" onClick={() => handleSort('isActive')}>
+                  <div className="flex items-center gap-1">Status {renderSortIcon('isActive')}</div>
                 </th>
-                <th className="px-6 pb-2 text-right">Actions</th>
+                <th className="px-6 pb-2 cursor-pointer hover:text-gray-900 transition-colors whitespace-nowrap" onClick={() => handleSort('createdAt')}>
+                  <div className="flex items-center gap-1">Joined {renderSortIcon('createdAt')}</div>
+                </th>
+                <th className="px-6 pb-2 text-right sticky right-0 bg-white z-20 whitespace-nowrap"></th>
               </tr>
             </thead>
             <tbody>
               {data.users?.length > 0 ? (
                 data.users.map((user: any) => (
-                  <tr key={user.id} className="group cursor-pointer">
-                    <td className="px-6 py-4.5 bg-white border-y border-l border-gray-100 first:rounded-l-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
+                  <tr key={user.id} className="group cursor-pointer hover:bg-gray-50/50" onClick={() => {
+                    setSelectedUser(user);
+                    setIsViewModalOpen(true);
+                  }}>
+                    <td className="px-6 py-4.5 bg-white border-y border-l border-gray-100 first:rounded-l-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200 sticky left-0 z-10">
                       <div className="font-semibold text-gray-900">{user.name || 'Unnamed'}</div>
                       <div className="text-sm font-normal text-gray-400 mt-0.5">{user.email}</div>
                       {user.businessName && <div className="text-xs font-normal text-gray-400 mt-0.5">Biz: {user.businessName}</div>}
@@ -296,8 +304,10 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4.5 font-semibold text-gray-900 bg-white border-y border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
-                      {user.wallet?.balance?.toFixed(2) || '0.00'} T
-                      <div className="text-xs text-gray-400 font-normal mt-0.5">Spent: {user.wallet?.totalSpent?.toFixed(2) || '0.00'} T</div>
+                      {user.wallet?.balance?.toFixed(0) || '0'}
+                    </td>
+                    <td className="px-6 py-4.5 font-semibold text-gray-500 bg-white border-y border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
+                      {user.wallet?.totalSpent?.toFixed(0) || '0'}
                     </td>
                     <td className="px-6 py-4.5 bg-white border-y border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
                       <span className={cn(
@@ -313,32 +323,14 @@ export default function UsersPage() {
                     <td className="px-6 py-4.5 text-gray-500 text-sm bg-white border-y border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4.5 bg-white border-y border-r border-gray-100 last:rounded-r-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200">
-                      <div className="flex justify-end gap-3 opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleRole(user.id, user.role); }}
-                          className="text-xs font-semibold text-[#0052ff] hover:text-[#0040d1] bg-[#0052ff]/5 hover:bg-[#0052ff]/10 px-3 py-1.5 rounded-lg transition-colors"
-                        >
-                          Change Role
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleStatus(user.id, user.isActive); }}
-                          className={cn(
-                            "text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors",
-                            user.isActive 
-                              ? "text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100"
-                              : "text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100"
-                          )}
-                        >
-                          {user.isActive ? 'Suspend' : 'Activate'}
-                        </button>
-                      </div>
+                    <td className="px-6 py-4.5 bg-white group-hover:bg-gray-50/50 border-y border-r border-gray-100 last:rounded-r-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] group-hover:border-gray-200 transition-all duration-200 sticky right-0 z-10 text-right">
+                      <ChevronRight size={20} className="text-gray-300 group-hover:text-[#0052ff] transition-colors inline-block" />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                     No users found.
                   </td>
                 </tr>
@@ -458,6 +450,104 @@ export default function UsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View User Details Modal */}
+      {isViewModalOpen && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setIsViewModalOpen(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                User Details
+                <span className={cn(
+                  "px-2 py-0.5 text-[10px] font-bold rounded-full border tracking-wide",
+                  selectedUser.isActive 
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-red-50 text-red-700 border-red-200"
+                )}>
+                  {selectedUser.isActive ? 'ACTIVE' : 'SUSPENDED'}
+                </span>
+              </h3>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <XCircle size={24} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Name</div>
+                    <div className="font-semibold text-gray-900">{selectedUser.name || 'Unnamed'}</div>
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Email</div>
+                    <div className="font-semibold text-gray-900">{selectedUser.email}</div>
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Tokens Balance</div>
+                    <div className="font-semibold text-gray-900">{selectedUser.wallet?.balance?.toFixed(0) || '0'} T</div>
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Spent</div>
+                    <div className="font-semibold text-gray-900">{selectedUser.wallet?.totalSpent?.toFixed(0) || '0'} T</div>
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Business Name</div>
+                    <div className="font-semibold text-gray-900">{selectedUser.businessName || 'N/A'}</div>
+                 </div>
+                 <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Joined Date</div>
+                    <div className="font-semibold text-gray-900">{new Date(selectedUser.createdAt).toLocaleDateString()}</div>
+                 </div>
+              </div>
+
+              <hr className="border-gray-100" />
+              
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Manage Account</h4>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                   <div>
+                     <div className="text-sm font-semibold text-gray-900">Access Role</div>
+                     <div className="text-xs text-gray-500 mt-0.5">Determine permissions across the app</div>
+                   </div>
+                   <select
+                      value={selectedUser.role}
+                      onChange={(e) => {
+                        changeRole(selectedUser.id, e.target.value);
+                        setSelectedUser({...selectedUser, role: e.target.value});
+                      }}
+                      className="text-sm font-bold text-[#0052ff] bg-[#0052ff]/10 hover:bg-[#0052ff]/20 px-3 py-2 rounded-xl transition-colors border-none focus:ring-0 cursor-pointer outline-none"
+                    >
+                      <option value="USER">USER</option>
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                    </select>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                   <div>
+                     <div className="text-sm font-semibold text-gray-900">Account Status</div>
+                     <div className="text-xs text-gray-500 mt-0.5">Suspend to block login access</div>
+                   </div>
+                   <button
+                      onClick={() => { 
+                        toggleStatus(selectedUser.id, selectedUser.isActive);
+                        setSelectedUser({...selectedUser, isActive: !selectedUser.isActive});
+                      }}
+                      className={cn(
+                        "text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-sm",
+                        selectedUser.isActive 
+                          ? "text-orange-700 bg-orange-100 hover:bg-orange-200"
+                          : "text-green-700 bg-green-100 hover:bg-green-200"
+                      )}
+                    >
+                      {selectedUser.isActive ? 'Suspend User' : 'Activate User'}
+                    </button>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
