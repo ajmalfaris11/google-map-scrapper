@@ -109,6 +109,13 @@ export class UsersController {
         }
       : {};
 
+    let orderByClause: any = { [sortBy]: order };
+    if (sortBy === 'wallet' || sortBy === 'balance') {
+      orderByClause = { wallet: { balance: order } };
+    } else if (sortBy === 'totalSpent') {
+      orderByClause = { wallet: { totalSpent: order } };
+    }
+
     const [users, total] = await Promise.all([
       this.db.user.findMany({
         where,
@@ -129,7 +136,7 @@ export class UsersController {
             }
           }
         },
-        orderBy: { [sortBy]: order },
+        orderBy: orderByClause,
       }),
       this.db.user.count({ where }),
     ]);
