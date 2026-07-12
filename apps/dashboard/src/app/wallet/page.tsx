@@ -95,7 +95,11 @@ export default function WalletDashboardPage() {
                 {wallet.transactions.map((tx: any) => (
                   <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-white transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        tx.type === 'JOB_REFUND' ? 'bg-yellow-100 text-yellow-600' :
+                        tx.type === 'ADMIN_CREDIT' ? 'bg-blue-100 text-blue-600' :
+                        tx.amount < 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                      }`}>
                         {tx.amount > 0 ? <Plus size={18} /> : <Minus size={18} />}
                       </div>
                       <div>
@@ -103,7 +107,11 @@ export default function WalletDashboardPage() {
                         <p className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleDateString()} at {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                     </div>
-                    <div className={`font-black text-lg ${tx.amount > 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                    <div className={`font-black text-lg ${
+                      tx.type === 'JOB_REFUND' ? 'text-yellow-500' :
+                      tx.type === 'ADMIN_CREDIT' ? 'text-blue-500' :
+                      tx.amount < 0 ? 'text-red-500' : 'text-green-600'
+                    }`}>
                       {tx.amount > 0 ? '+' : ''}{tx.amount}
                     </div>
                   </div>
