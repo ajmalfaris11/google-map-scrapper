@@ -9,8 +9,11 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Post()
-  createJob(@Req() req: Request, @Body() body: { keyword: string; location?: string; options?: any }) {
-    return this.jobsService.createJob(body);
+  createJob(@Req() req: any, @Body() body: { keyword: string; location?: string; options?: any }) {
+    return this.jobsService.createJob({
+      ...body,
+      userId: req.user.id
+    });
   }
 
   @Get('stats/overview')
