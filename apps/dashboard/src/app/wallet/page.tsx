@@ -45,15 +45,6 @@ export default function WalletDashboardPage() {
               {isLoading ? "..." : (wallet?.balance?.toLocaleString() || 0)}
             </div>
             <p className="text-sm text-gray-400 font-medium mb-6">Tokens never expire.</p>
-            
-            <div className="mt-auto pt-2">
-              <Link 
-                href="/wallet/top-up"
-                className="w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold py-3 rounded-xl transition-all"
-              >
-                Buy More Tokens <ArrowRight size={16} />
-              </Link>
-            </div>
           </div>
 
           {/* Total Spent Card */}
