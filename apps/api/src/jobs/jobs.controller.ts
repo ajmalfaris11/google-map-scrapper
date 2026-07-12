@@ -17,13 +17,13 @@ export class JobsController {
   }
 
   @Get('stats/overview')
-  getOverviewStats() {
-    return this.jobsService.getOverviewStats();
+  getOverviewStats(@Req() req: any) {
+    return this.jobsService.getOverviewStats(req.user);
   }
 
   @Get()
-  getJobs(@Req() req: Request) {
-    return this.jobsService.getJobs();
+  getJobs(@Req() req: any) {
+    return this.jobsService.getJobs(req.user);
   }
 
   @Get(':id')
