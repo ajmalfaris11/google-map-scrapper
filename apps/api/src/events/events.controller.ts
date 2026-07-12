@@ -1,13 +1,15 @@
-import { Controller, Sse } from '@nestjs/common';
+import { Controller, Sse, UseGuards, Req } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { DatabaseService } from '../database/database.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('events')
 export class EventsController {
   constructor(private readonly db: DatabaseService) {}
 
   @Sse('stream')
-  streamEvents(): Observable<MessageEvent> {
+  streamEvents(@Req() req: any): Observable<MessageEvent> {
     return new Observable((subscriber) => {
       let interval: NodeJS.Timeout;
       
@@ -15,13 +17,20 @@ export class EventsController {
         try {
           // Poll for running or queued jobs and their progress
           const tenSecondsAgo = new Date(Date.now() - 10000);
+          
+          const whereClause: any = {
+            OR: [
+              { status: { in: ['QUEUED', 'RUNNING'] } },
+              { status: { in: ['COMPLETED', 'FAILED'] }, updatedAt: { gte: tenSecondsAgo } }
+            ]
+          };
+
+          if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
+            whereClause.userId = req.user?.id;
+          }
+
           const jobs = await this.db.job.findMany({
-            where: {
-              OR: [
-                { status: { in: ['QUEUED', 'RUNNING'] } },
-                { status: { in: ['COMPLETED', 'FAILED'] }, updatedAt: { gte: tenSecondsAgo } }
-              ]
-            },
+            where: whereClause,
             select: {
               id: true,
               status: true,
