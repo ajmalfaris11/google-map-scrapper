@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { FullScreenToggle } from "@/components/FullScreenToggle";
 import { Logo } from "@/components/Logo";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { WalletHeader } from "@/components/WalletHeader";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -35,8 +36,12 @@ export default function RootLayout({
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0 bg-bg-canvas text-text-primary rounded-t-[2rem] rounded-b-none md:rounded-[2rem] overflow-hidden shadow-2xl ml-0 md:ml-2 border-t md:border border-border-color/50 pb-20 md:pb-0 mt-4 md:mt-0">
               <header className="h-16 md:h-20 border-b border-border-color/30 bg-transparent sticky top-0 z-10 px-4 md:px-8 flex items-center justify-between">
-                <div className="hidden md:block text-sm font-medium text-text-secondary w-1/3">
-                  Connected to Engine
+                <div className="hidden md:flex items-center gap-2 w-1/3">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                  </span>
+                  <span className="text-sm text-text-secondary font-medium">System Online</span>
                 </div>
                 <div className="flex-1 flex justify-start md:justify-center items-center">
                   <h1 className="text-2xl md:text-3xl font-semibold tracking-wide text-text-primary flex items-center drop-shadow-sm absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
@@ -47,13 +52,8 @@ export default function RootLayout({
                   </h1>
                 </div>
                 <div className="flex items-center justify-end gap-4 w-auto md:w-1/3">
-                  <div className="hidden md:flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
-                    </span>
-                    <span className="text-sm text-text-secondary font-medium">System Online</span>
-                  </div>
+
+                  <WalletHeader />
                   <FullScreenToggle />
                 </div>
               </header>
