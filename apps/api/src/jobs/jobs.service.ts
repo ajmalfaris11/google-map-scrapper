@@ -5,7 +5,38 @@ import { DatabaseService } from '../database/database.service';
 export class JobsService {
   constructor(private db: DatabaseService) {}
 
-  async createJob(data: { keyword: string; location?: string; options?: any }) {
+  async createJob(data: { keyword: string; location?: string; options?: any; userId: string }) {
+    const maxResults = data.options?.maxResults || 10;
+    
+    // Check wallet balance
+    const wallet = await this.db.wallet.findUnique({
+      where: { userId: data.userId }
+    });
+    
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    
+    if (wallet.balance < maxResults) {
+      throw new Error(`Insufficient tokens. You need ${maxResults} tokens but have ${wallet.balance}.`);
+    }
+
+    // Upfront deduction
+    await this.db.$transaction([
+      this.db.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { decrement: maxResults } }
+      }),
+      this.db.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: -maxResults,
+          type: 'JOB_UPFRONT_DEDUCTION',
+          description: `Upfront deduction for ${maxResults} leads (Job: ${data.keyword})`
+        }
+      })
+    ]);
+
     return this.db.job.create({
       data: {
         keyword: data.keyword,
@@ -13,6 +44,7 @@ export class JobsService {
         location: data.location,
         options: data.options || {},
         status: 'QUEUED',
+        userId: data.userId
       },
     });
   }
