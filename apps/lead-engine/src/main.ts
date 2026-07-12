@@ -127,7 +127,10 @@ async function processJob(job: any) {
           await prisma.$transaction([
             prisma.wallet.update({
               where: { id: wallet.id },
-              data: { balance: { increment: refundAmount } }
+              data: { 
+                balance: { increment: refundAmount },
+                totalSpent: { decrement: refundAmount }
+              }
             }),
             prisma.walletTransaction.create({
               data: {
