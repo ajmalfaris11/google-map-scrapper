@@ -25,7 +25,10 @@ export class JobsService {
     await this.db.$transaction([
       this.db.wallet.update({
         where: { id: wallet.id },
-        data: { balance: { decrement: maxResults } }
+        data: { 
+          balance: { decrement: maxResults },
+          totalSpent: { increment: maxResults }
+        }
       }),
       this.db.walletTransaction.create({
         data: {
