@@ -5,7 +5,7 @@ import { DatabaseService } from '../database/database.service';
 export class BusinessesService {
   constructor(private readonly db: DatabaseService) {}
 
-  async getBusinesses(query: any) {
+  async getBusinesses(query: any, user: any) {
     const { 
       page = 1, 
       limit = 50, 
@@ -25,6 +25,10 @@ export class BusinessesService {
     const skip = (Number(page) - 1) * Number(limit);
     const where: any = {};
     where.AND = [];
+    
+    if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') {
+      where.job = { userId: user?.id };
+    }
 
     if (status) where.status = status;
     if (jobId) where.jobId = jobId;
