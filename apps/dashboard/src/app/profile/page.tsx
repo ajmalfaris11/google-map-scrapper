@@ -55,8 +55,10 @@ export default function ProfilePage() {
         {/* Left Column: Avatar & Quick Info */}
         <div className="col-span-1 flex flex-col gap-6">
           <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-accent-primary/10 text-accent-primary flex items-center justify-center text-3xl font-bold mb-4 shadow-inner">
-              {user.email.substring(0, 2).toUpperCase()}
+            <div className="w-24 h-24 rounded-full p-1.5 bg-accent-primary mb-4 shadow-lg shadow-accent-primary/20">
+              <div className="w-full h-full rounded-full border-2 border-dashed border-white text-white flex items-center justify-center text-3xl font-bold">
+                {user.email.substring(0, 2).toUpperCase()}
+              </div>
             </div>
             <h2 className="text-xl font-bold text-gray-900 truncate w-full" title={user.email}>
               {user.email.split('@')[0]}
