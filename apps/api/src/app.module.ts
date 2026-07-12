@@ -7,6 +7,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { BusinessesModule } from './businesses/businesses.module';
 import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
+import { WalletModule } from './wallet/wallet.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -18,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     BusinessesModule,
     EventsModule,
     AdminModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
