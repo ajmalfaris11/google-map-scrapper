@@ -49,8 +49,10 @@ export class JobsService {
     });
   }
 
-  async getJobs() {
+  async getJobs(user: any) {
+    const whereClause = user?.role === 'ADMIN' ? {} : { userId: user?.id };
     return this.db.job.findMany({
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -105,12 +107,15 @@ export class JobsService {
     });
   }
 
-  async getOverviewStats() {
-    const totalLeads = await this.db.business.count();
-    const activeJobs = await this.db.job.count({ where: { status: 'RUNNING' } });
+  async getOverviewStats(user: any) {
+    const whereJob = user?.role === 'ADMIN' ? {} : { userId: user?.id };
+    const whereBusiness = user?.role === 'ADMIN' ? {} : { job: { userId: user?.id } };
+
+    const totalLeads = await this.db.business.count({ where: whereBusiness });
+    const activeJobs = await this.db.job.count({ where: { ...whereJob, status: 'RUNNING' } });
     
-    const completed = await this.db.job.count({ where: { status: 'COMPLETED' } });
-    const failed = await this.db.job.count({ where: { status: 'FAILED' } });
+    const completed = await this.db.job.count({ where: { ...whereJob, status: 'COMPLETED' } });
+    const failed = await this.db.job.count({ where: { ...whereJob, status: 'FAILED' } });
     const successRate = (completed + failed) > 0 ? (completed / (completed + failed)) * 100 : 100;
 
     return {
