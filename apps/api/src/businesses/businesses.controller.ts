@@ -9,8 +9,8 @@ export class BusinessesController {
   constructor(private readonly businessesService: BusinessesService) {}
 
   @Get()
-  getBusinesses(@Query() query: any) {
-    return this.businessesService.getBusinesses(query);
+  getBusinesses(@Req() req: any, @Query() query: any) {
+    return this.businessesService.getBusinesses(query, req.user);
   }
 
   @Get(':id')
